@@ -14,7 +14,6 @@ import numpy as np
 import shutil
 import os.path
 import sys
-
 # Location of the training data
 TRAIN_DATA      = "../GDrive/train.tfrecord"
 # Location of the validation data

@@ -1,0 +1,9 @@
+-- run_test.py: invoking following command in '/home/irg/irg/LanguagePolicies/ros2/src/policy_translation':
+ - /opt/ros/eloquent/bin/ament_lint_cmake --xunit-file /home/irg/irg/LanguagePolicies/ros2/build/policy_translation/test_results/policy_translation/lint_cmake.xunit.xml
+
+
+No problems found
+
+
+-- run_test.py: return code 0
+-- run_test.py: verify result file '/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/test_results/policy_translation/lint_cmake.xunit.xml'

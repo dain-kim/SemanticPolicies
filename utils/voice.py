@@ -57,6 +57,11 @@ class Voice():
         self.synonyms["left"]   = ["left", "port"]
         self.synonyms["right"]  = ["right", "starboard"]
 
+        self.synonyms["place"]   = ["place", "gather", "put"] 
+        # self.synonyms["amount"] = ["all", ""]
+        self.synonyms["cup"]    = ["cup", "container", "grail", "stein"]
+
+
         self.test_words = {}
         self.test_words["round"]  = "circular"
         self.test_words["square"] = "quadrilateral"
@@ -76,9 +81,14 @@ class Voice():
         self.test_words["bowl"]   = "bowl" #
         self.test_words["cup"]    = "container" #
 
+        # self.templates = [
+        #     [ "{pick} the {cup_description} {cup} {pick_support}"  ],
+        #     [ "{pour} {amount} into the {bowl_description} {bowl}" ]
+        # ]
+
         self.templates = [
-            [ "{pick} the {cup_description} {cup} {pick_support}"  ],
-            [ "{pour} {amount} into the {bowl_description} {bowl}" ]
+            [ "{place} {amount} {cup_description} {cup} into the {bowl_description} {bowl}" ]
+            # "place all red cups into the yellow bowl"
         ]
 
         # Make adjustments in case we don't want synonyms
@@ -180,24 +190,30 @@ class Voice():
         return color
 
     def generateSentence(self, task):
-        pick             = np.random.choice(self.synonyms["pick"])
-        pick_support     = "" if len(pick.split("_")) == 1 else pick.split("_")[1]
-        pick             = pick.split("_")[0]
-        amount           = np.random.choice(self.synonyms["little"]) if task["amount"] < 150 else np.random.choice(self.synonyms["much"])
+        # "{place} {amount} {cup_description} {cup} into the {bowl_description} {bowl}"
+        # "place all red cups into the yellow bowl"
+        # "put the cup into the dish"
+        place             = np.random.choice(self.synonyms["place"])
+        # pick_support     = "" if len(pick.split("_")) == 1 else pick.split("_")[1]
+        # pick             = pick.split("_")[0]
+        # amount           = np.random.choice(self.synonyms["little"]) if task["amount"] < 150 else np.random.choice(self.synonyms["much"])
+        amount           = "all" if task["amount"] == "all" else "the"
         cup_description  = "" if task["target/type"] == "bowl" else self.getMinimalCupDescription(task)
         bowl_description = "" if task["target/type"] == "cup"  else self.getMinimalBowlDescription(task)
+        cup = np.random.choice(self.synonyms["cup"]) + ("s" if amount == "all" else "")
         namespace        = {
-            "pick": pick,
-            "cup_description": cup_description, 
-            "cup": np.random.choice(self.synonyms["cup"]), 
-            "pick_support": pick_support, 
-            "pour": np.random.choice(self.synonyms["pour"]), 
+            "place": place,
             "amount": amount, 
+            "cup_description": cup_description, 
+            "cup": cup, 
+            # "pick_support": pick_support, 
+            # "pour": np.random.choice(self.synonyms["pour"]), 
             "bowl_description": bowl_description,
             "bowl": np.random.choice(self.synonyms["bowl"])
         }
 
-        sentence = np.random.choice(self.templates[task["phase"]])
+        # sentence = np.random.choice(self.templates[task["phase"]])
+        sentence = self.templates[0]
         sentence = sentence.format(**namespace)
         sentence = sentence.replace("  ", " ")
         return sentence

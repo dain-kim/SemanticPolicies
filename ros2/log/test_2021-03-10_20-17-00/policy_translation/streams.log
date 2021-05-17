@@ -1,0 +1,52 @@
+[0.087s] Invoking command in '/home/irg/irg/LanguagePolicies/ros2/build/policy_translation': PS1=\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /usr/bin/ctest -C Release -D ExperimentalTest --no-compress-output -V --force-new-ctest-process
+[0.113s] UpdateCTestConfiguration  from :/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/CTestConfiguration.ini
+[0.113s] Parse Config file:/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/CTestConfiguration.ini
+[0.113s]    Site: irg-ThinkPad-W540
+[0.113s]    Build name: (empty)
+[0.113s]  Add coverage exclude regular expressions.
+[0.114s] SetCTestConfiguration:CMakeCommand:/usr/bin/cmake
+[0.114s] Create new tag: 20210311-0117 - Experimental
+[0.114s] UpdateCTestConfiguration  from :/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/CTestConfiguration.ini
+[0.114s] Parse Config file:/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/CTestConfiguration.ini
+[0.114s] Test project /home/irg/irg/LanguagePolicies/ros2/build/policy_translation
+[0.114s] Constructing a list of tests
+[0.114s] Done constructing a list of tests
+[0.114s] Updating test list for fixtures
+[0.114s] Added 0 tests to meet fixture requirements
+[0.114s] Checking test dependency graph...
+[0.114s] Checking test dependency graph end
+[0.114s] test 1
+[0.114s]     Start 1: lint_cmake
+[0.114s] 
+[0.115s] 1: Test command: /usr/bin/python3 "-u" "/home/irg/ros2_eloquent/install/ament_cmake_test/share/ament_cmake_test/cmake/run_test.py" "/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/test_results/policy_translation/lint_cmake.xunit.xml" "--package-name" "policy_translation" "--output-file" "/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/ament_lint_cmake/lint_cmake.txt" "--command" "/opt/ros/eloquent/bin/ament_lint_cmake" "--xunit-file" "/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/test_results/policy_translation/lint_cmake.xunit.xml"
+[0.115s] 1: Test timeout computed to be: 60
+[0.317s] 1: -- run_test.py: invoking following command in '/home/irg/irg/LanguagePolicies/ros2/src/policy_translation':
+[0.317s] 1:  - /opt/ros/eloquent/bin/ament_lint_cmake --xunit-file /home/irg/irg/LanguagePolicies/ros2/build/policy_translation/test_results/policy_translation/lint_cmake.xunit.xml
+[0.767s] 1: 
+[0.767s] 1: No problems found
+[0.781s] 1: -- run_test.py: return code 0
+[0.781s] 1: -- run_test.py: verify result file '/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/test_results/policy_translation/lint_cmake.xunit.xml'
+[0.793s] 1/2 Test #1: lint_cmake .......................   Passed    0.68 sec
+[0.793s] test 2
+[0.793s]     Start 2: xmllint
+[0.793s] 
+[0.793s] 2: Test command: /usr/bin/python3 "-u" "/home/irg/ros2_eloquent/install/ament_cmake_test/share/ament_cmake_test/cmake/run_test.py" "/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/test_results/policy_translation/xmllint.xunit.xml" "--package-name" "policy_translation" "--output-file" "/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/ament_xmllint/xmllint.txt" "--command" "/opt/ros/eloquent/bin/ament_xmllint" "--xunit-file" "/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/test_results/policy_translation/xmllint.xunit.xml"
+[0.793s] 2: Test timeout computed to be: 60
+[0.989s] 2: -- run_test.py: invoking following command in '/home/irg/irg/LanguagePolicies/ros2/src/policy_translation':
+[0.989s] 2:  - /opt/ros/eloquent/bin/ament_xmllint --xunit-file /home/irg/irg/LanguagePolicies/ros2/build/policy_translation/test_results/policy_translation/xmllint.xunit.xml
+[1.667s] 2: File 'package.xml' is valid
+[1.667s] 2: 
+[1.667s] 2: No problems found
+[1.687s] 2: -- run_test.py: return code 0
+[1.687s] 2: -- run_test.py: verify result file '/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/test_results/policy_translation/xmllint.xunit.xml'
+[1.700s] 2/2 Test #2: xmllint ..........................   Passed    0.91 sec
+[1.701s] 
+[1.701s] 100% tests passed, 0 tests failed out of 2
+[1.701s] 
+[1.701s] Label Time Summary:
+[1.701s] lint_cmake    =   0.68 sec*proc (1 test)
+[1.701s] linter        =   1.59 sec*proc (2 tests)
+[1.701s] xmllint       =   0.91 sec*proc (1 test)
+[1.701s] 
+[1.701s] Total Test time (real) =   1.59 sec
+[1.721s] Invoked command in '/home/irg/irg/LanguagePolicies/ros2/build/policy_translation' returned '0': PS1=\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /usr/bin/ctest -C Release -D ExperimentalTest --no-compress-output -V --force-new-ctest-process

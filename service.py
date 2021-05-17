@@ -23,6 +23,9 @@ import json
 import pickle
 import copy
 
+from dain_object_detector import show_bounding_boxes
+import time
+
 # Force TensorFlow to use the CPU
 FORCE_CPU    = True
 # Use dropout at run-time for stochastif-forward passes
@@ -165,10 +168,12 @@ class NetworkService():
                 image = self.imgmsg_to_cv2(req.image)
             except CvBridgeError as e:
                 print(e)
-            language = self.tokenize(req.language)
-            self.language = language + [0] * (15-len(language))
+            ## Original language processing
+            # language = self.tokenize(req.language)
+            # self.language = language + [0] * (15-len(language))
 
             image_features = model.frcnn(tf.convert_to_tensor([image], dtype=tf.uint8))
+            # print('type',image_features)
 
             scores   = image_features["detection_scores"][0, :6].numpy().astype(dtype=np.float32)
             scores   = [0.0 if v < 0.5 else 1.0 for v in scores.tolist()]
@@ -178,6 +183,10 @@ class NetworkService():
 
             boxes    = image_features["detection_boxes"][0, :6, :].numpy().astype(dtype=np.float32)
             
+            # detect_objects(model, image, tf.convert_to_tensor([image], dtype=tf.uint8), boxes, classes)
+            # show_bounding_boxes(image, boxes, classes, scores)
+            # model.saveBoundingBoxInfo(image, image_features)
+            
             self.features = np.concatenate((np.expand_dims(classes,1), boxes), axis=1)
 
             self.history  = []        
@@ -186,19 +195,22 @@ class NetworkService():
 
         robot           = np.asarray(self.history, dtype=np.float32)
         self.input_data = (
-            tf.convert_to_tensor(np.tile([self.language],[250, 1]), dtype=tf.int64), 
+            # tf.convert_to_tensor(np.tile([self.language],[250, 1]), dtype=tf.int64), ## Original language input in tensor form
+            req.language,
             tf.convert_to_tensor(np.tile([self.features],[250, 1, 1]), dtype=tf.float32),
             tf.convert_to_tensor(np.tile([robot],[250, 1, 1]), dtype=tf.float32)
         )
-
+        s = time.time()
         generated, (atn, dmp_dt, phase, weights) = model(self.input_data, training=tf.constant(False), use_dropout=tf.constant(True))
+        print('model took', round(time.time() - s,2), 'seconds to run')
         self.trj_gen    = tf.math.reduce_mean(generated, axis=0).numpy()
         self.trj_std    = tf.math.reduce_std(generated, axis=0).numpy()
         self.timesteps  = int(tf.math.reduce_mean(dmp_dt).numpy() * 500)
         self.b_weights  = tf.math.reduce_mean(weights, axis=0).numpy()
 
-        phase_value     = tf.math.reduce_mean(phase, axis=0).numpy()
-        phase_value     = phase_value[-1,0]
+        # phase_value     = tf.math.reduce_mean(phase, axis=0).numpy()
+        # phase_value     = phase_value[-1,0]
+        phase_value = phase
 
         self.sfp_history.append(self.b_weights[-1,:,:])
         if phase_value > 0.95 and len(self.sfp_history) > 100:

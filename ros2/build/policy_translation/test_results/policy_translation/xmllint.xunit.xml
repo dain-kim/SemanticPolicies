@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite
+  name="policy_translation.xmllint"
+  tests="1"
+  errors="0"
+  failures="0"
+  time="0.113"
+>
+  <testcase
+    name="package.xml"
+    classname="policy_translation.xmllint"/>
+  <system-out>Checked files:
+* package.xml</system-out>
+</testsuite>

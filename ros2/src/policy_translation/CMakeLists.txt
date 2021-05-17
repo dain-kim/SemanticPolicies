@@ -23,12 +23,13 @@ find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "srv/NetworkPT.srv"
-  "srv/TuneNetwork.srv"
-  "msg/Dummy.msg"
-  DEPENDENCIES sensor_msgs
- )
+# rosidl_generate_interfaces(${PROJECT_NAME}
+#   "srv/NetworkPT.srv"
+#   "srv/TuneNetwork.srv"
+#   "msg/Dummy.msg"
+#   DEPENDENCIES sensor_msgs
+#  )
+rosidl_generate_interfaces(${PROJECT_NAME} "srv/NetworkPT.srv" "srv/TuneNetwork.srv" "msg/Dummy.msg" DEPENDENCIES sensor_msgs)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

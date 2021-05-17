@@ -34,9 +34,9 @@ TGEN_SPEED_FACTOR   = 150
 # Height at which to grasp the cups. You do not need to change this.
 GRASP_HEIGHT        = 0.115
 # Output directory of the collected data
-DATA_PATH           = "../GDrive/collected/"
+DATA_PATH           = "../GDrive/dain/collected/"
 # Where to find the VRep scene file. This has to be an absolute path. 
-VREP_SCENE          = "../GDrive/NeurIPS2020.ttt"
+VREP_SCENE          = "../GDrive/testscene.ttt"
 VREP_SCENE          = os.getcwd() + "/" + VREP_SCENE
 
 class SimulatorState(object):
@@ -158,6 +158,11 @@ def _setJointVelocityFromTarget_Direct(pyrep, joints):
                                        script_handle_or_type=1,
                                        ints=(), floats=joints, strings=(), bytes="")
 
+def _releaseObject(self):
+    _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="releaseObject@control_script",
+                                    script_handle_or_type=1,
+                                    ints=(), floats=(), strings=(), bytes="")
+
 def _moveL(robot, current, goal, pad_one=False):
     g_pos, g_rot   = goal
     if type(g_pos) == np.ndarray:
@@ -200,10 +205,10 @@ def _moveJ(robot, current, goal, pad_one=False):
 def createEnvironment(pyrep):
     _setRobotJoints(pyrep, np.deg2rad(DEFAULT_UR5_JOINTS))
 
-    ncups  = np.random.randint(1,3)
-    nbowls = np.random.randint(ncups,5)
-    bowls  = np.random.choice(20, size=nbowls, replace=False) + 1
-    cups   = np.random.choice(3, size=ncups, replace=False) + 1
+    ncups  = np.random.randint(1,6)
+    nbowls = np.random.randint(1,3)
+    bowls  = np.random.choice(3, size=nbowls, replace=False) + 1
+    cups   = np.random.choice(6, size=ncups, replace=False) + 1
     ints   = [nbowls, ncups] + bowls.tolist() + cups.tolist()
     floats = []
 
@@ -211,10 +216,11 @@ def createEnvironment(pyrep):
     for i in range(nbowls + ncups):
         prev.append(genPosition(prev))
         floats += prev[-1]
-        if i < nbowls and bowls[i] > 10:
-            floats += [random.uniform(-math.pi/4.0,  math.pi/4.0)]
-        else:
-            floats += [0.0]
+        # if i < nbowls and bowls[i] > 10:
+        #     floats += [np.random.uniform(-math.pi/4.0,  math.pi/4.0)]
+        # else:
+        #     floats += [0.0]
+        floats += [0.0]
 
     result = pyrep.script_call(
         function_name_at_script_name="generateScene@control_script",
@@ -298,14 +304,19 @@ def _generatePouring(robot, current, rot):
 
     return trj
 
-def _setupTask(phase, env, robot, current):
+def _setupTask(env, robot, current):
+    # TODO edit
     task           = {}
-    task["amount"] = np.random.choice([180, 110])
+    cur_phase      = 0
+    cur_round      = 0
+    # task["amount"] = np.random.choice([180, 110])
+    task["amount"] = np.random.choice(["all", "one"])
     ints, floats   = env
     nbowls         = ints[0]
     ncups          = ints[1]
     bowl_ids       = ints[2:2+nbowls]
     cup_ids        = ints[2+nbowls:2+nbowls+ncups]
+    task["num_rounds"] = 2 * np.random.randint(1, ncups) if task["amount"] == "all" else 2
 
     waypoints    = []
     kdl_frame    = robot.getTcpFromAngles(current)
@@ -316,62 +327,71 @@ def _setupTask(phase, env, robot, current):
     original_rot = kdlFrameToRot(kdl_frame)
     original_pos = [kdl_frame.p.x(), kdl_frame.p.y(), kdl_frame.p.z()]
     
-    if phase == 0:  
-        target    = np.random.choice(cup_ids)
-        task["target/id"] = target
-        task["target/type"] = "cup"
-        target    = _getObjectInfo(ints, floats, target, iscup=True)
-        target[2] = GRASP_HEIGHT
-        rot       = [r for r in current_rot]
-        rot[0]    += _calculateAngle(target[0], target[1])
-        waypoints.append(("L", [t for t in target], rot))
+    while cur_round < num_rounds:
+        if cur_phase == 0:
+            target    = np.random.choice(cup_ids)
+            task["target/id"] = target
+            task["target/type"] = "cup"
+            target    = _getObjectInfo(ints, floats, target, iscup=True)
+            target[2] = GRASP_HEIGHT
+            rot       = [r for r in current_rot]
+            rot[0]    += _calculateAngle(target[0], target[1])
+            waypoints.append(("L", [t for t in target], rot))
 
-        norm        = np.linalg.norm(target[:2], ord=2)
-        factor      = norm / (norm * 0.85)
-        target2     = [t for t in target]
-        target2[0] /= factor
-        target2[1] /= factor
-        waypoints.insert(0, ("J", target2, rot))
-        waypoints.append(("G", None, None))
-        target3     = [t for t in target2]
-        target3[2] += 0.10
-        waypoints.append(("L", target3, rot))
-    if phase == 1:
-        target    = np.random.choice(bowl_ids)
-        task["target/id"] = target
-        task["target/type"] = "bowl"
-        target    = _getObjectInfo(ints, floats, target, iscup=False)
-        target[2] = current_pos[2]
-        target    = adjustTargetForPouring(target[0], target[1], target[2])
-        rot       = [r for r in original_rot]
-        rot[0]    += _calculateAngle(target[0], target[1])
-        waypoints += getCollisionWaypoints(robot, current_pos, target)
-        waypoints.append(("J", target, rot))
-        waypoints.append(("P", None, np.deg2rad(task["amount"])))
-        waypoints.append(("I", 40, None))
+            norm        = np.linalg.norm(target[:2], ord=2)
+            factor      = norm / (norm * 0.85)
+            target2     = [t for t in target]
+            target2[0] /= factor
+            target2[1] /= factor
+            waypoints.insert(0, ("J", target2, rot))
+            waypoints.append(("G", None, None))
+            target3     = [t for t in target2]
+            target3[2] += 0.10
+            waypoints.append(("L", target3, rot))
+            cur_phase += 1
+        elif cur_phase == 1:
+            target    = np.random.choice(bowl_ids)
+            task["target/id"] = target
+            task["target/type"] = "bowl"
+            target    = _getObjectInfo(ints, floats, target, iscup=False)
+            target[2] = current_pos[2]
+            target    = adjustTargetForPouring(target[0], target[1], target[2])
+            rot       = [r for r in original_rot]
+            rot[0]    += _calculateAngle(target[0], target[1])
+            waypoints += getCollisionWaypoints(robot, current_pos, target)
+            waypoints.append(("J", target, rot))
+            # waypoints.append(("P", None, np.deg2rad(task["amount"])))
+            waypoints.append(("D", None, None))
+            waypoints.append(("I", 40, None))
+            cur_phase -= 1
 
-    trajectory       = np.zeros((1,7), dtype=np.float32)
-    trajectory[0,:6] = current
-    grasp_active     = False if phase == 0 else True
-    if grasp_active:
-        trajectory[0,-1] = 1.0
+        trajectory       = np.zeros((1,7), dtype=np.float32)
+        trajectory[0,:6] = current
+        grasp_active     = False if cur_phase == 0 else True
+        if grasp_active:
+            trajectory[0,-1] = 1.0
 
-    for i, wp in enumerate(waypoints):
-        if wp[0] == "L": # Move linear in tool space
-            part = _moveL(robot, trajectory[-1,:6], wp[1:], pad_one=grasp_active)
-        elif wp[0] == "J": # Move linear in joint space
-            part = _moveJ(robot, trajectory[-1,:6], wp[1:], pad_one=grasp_active)
-        elif wp[0] == "G": # Close gripper
-            part = np.tile(trajectory[-1,:],reps=[30,1])
-            part[:,-1] = 1.0
-            grasp_active = True
-        elif wp[0] == "P": # Do pouring motion
-            part = _generatePouring(robot, trajectory[-1,:], wp[2])
-        elif wp[0] == "I": # Idle a little
-            part = np.tile(np.expand_dims(trajectory[-1,:], 0),reps=[wp[1],1])
-            
-        trajectory = np.vstack((trajectory, part))
-        
+        for i, wp in enumerate(waypoints):
+            if wp[0] == "L": # Move linear in tool space
+                part = _moveL(robot, trajectory[-1,:6], wp[1:], pad_one=grasp_active)
+            elif wp[0] == "J": # Move linear in joint space
+                part = _moveJ(robot, trajectory[-1,:6], wp[1:], pad_one=grasp_active)
+            elif wp[0] == "G": # Close gripper
+                part = np.tile(trajectory[-1,:],reps=[30,1])
+                part[:,-1] = 1.0
+                grasp_active = True
+            elif wp[0] == "P": # Do pouring motion
+                part = _generatePouring(robot, trajectory[-1,:], wp[2])
+            elif wp[0] == "D": # Drop object
+                part = np.tile(trajectory[-1,:],reps=[30,1])
+                part[:,-1] = 0.0
+                grasp_active = False
+            elif wp[0] == "I": # Idle a little
+                part = np.tile(np.expand_dims(trajectory[-1,:], 0),reps=[wp[1],1])
+                
+            trajectory = np.vstack((trajectory, part))
+    
+        cur_round += 1
     
     task["trajectory"] = trajectory
 
@@ -423,7 +443,9 @@ def collectSingleSample(pyrep):
     done        = False
     task        = None
     environment = None
-    phase       = 0 
+    # phase       = 0 
+    _round      = 0 
+    num_rounds  = 0
     trj_step    = 0
     hid         = hashids.Hashids()
     task_name   = hid.encode(int(time.time() * 1000000))
@@ -432,15 +454,16 @@ def collectSingleSample(pyrep):
         if frame == 0:
             environment = createEnvironment(pyrep)
         elif task is None:
-            task               = _setupTask(phase, environment, robot, state.data["joint_robot_position"])
+            task               = _setupTask(environment, robot, state.data["joint_robot_position"])
             task["name"]       = task_name
-            task["phase"]      = phase
+            # task["phase"]      = phase
             task["image"]      = _getCameraImage(rgb_camera)
             task["ints"]       = environment[0]
             task["floats"]     = environment[1]
             task["state/raw"]  = []
             task["state/dict"] = []
             task["voice"]      = _generateVoice(voice, task)
+            num_rounds = task["num_rounds"]
         else:
             task["state/raw"].append(state.toArray())
             task["state/dict"].append(state.data)
@@ -449,12 +472,15 @@ def collectSingleSample(pyrep):
                 trj_step += 1
             except IndexError:
                 angles   = task["trajectory"][-1,:]
-                phase   += 1
+                _round  += 1
                 name     = task_name + "_" + str(phase) + ".json"
-                saveTaskToFile(DATA_PATH + name, task)
+                # saveTaskToFile(DATA_PATH + name, task)
+                print('TASK COMPLETE')
+                print(task)
                 task     = None
                 trj_step = 0
-                if phase == 2:
+
+                if _round >= num_rounds:
                     done = True
             _setJointVelocityFromTarget(pyrep, angles)
 
@@ -482,4 +508,5 @@ if __name__ == "__main__":
     # [p.start() for p in processes]
     # [p.join() for p in processes]
 
-    Parallel(n_jobs=PROCESSES)(delayed(run)() for i in range(PROCESSES))
+    # Parallel(n_jobs=PROCESSES)(delayed(run)() for i in range(PROCESSES))
+    run()

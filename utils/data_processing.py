@@ -257,16 +257,16 @@ if __name__ == '__main__':
 
     # Specify where the raw data can be found and where you want the normalization to be saved
     dc.createNormalization(
-        raw="../GDrive/collected/*.json",
-        out="../GDrive/normalization_custom.pkl"
+        raw="../GDrive/dain/collected/*.json",
+        out="../GDrive/dain/normalization_custom.pkl"
         )
 
     # Specify where the raw data can be found and where you want the validation data to be saved
     # Also specify how many samples should be part of the validation data
     # Note: Depending on how many data your have, you should leave some for training
     dc.createRecord(
-        raw="../GDrive/collected/*.json",
-        out="../GDrive/validate_custom.tfrecord",
+        raw="../GDrive/dain/collected/*.json",
+        out="../GDrive/dain/validate_custom.tfrecord",
         max_samples=4000
         )
 
@@ -274,8 +274,8 @@ if __name__ == '__main__':
     # Also specify how many samples should be part of the training data.
     # Please also set min_samples to remove the data used for validation from the training data
     dc.createRecord(
-        raw="../GDrive/collected/*.json",
-        out="../GDrive/train_custom.tfrecord",
+        raw="../GDrive/dain/collected/*.json",
+        out="../GDrive/dain/train_custom.tfrecord",
         min_samples=4000,
         max_samples=40000
         )

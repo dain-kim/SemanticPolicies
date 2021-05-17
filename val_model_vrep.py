@@ -30,7 +30,7 @@ HEADLESS            = False
 USE_SHAPE_SIZE      = True
 # Run on the test data, or start the simulator in manual mode 
 # (manual mode will allow you to generate environments and type in your own commands)
-RUN_ON_TEST_DATA    = True
+RUN_ON_TEST_DATA    = False
 # How many of the 100 test-data do you want to test?
 NUM_TESTED_DATA     = 100
 # Where to find the normailization?
@@ -38,6 +38,7 @@ NORM_PATH           = "../GDrive/normalization_v2.pkl"
 # Where to find the VRep scene file. This has to be an absolute path. 
 VREP_SCENE          = "../GDrive/NeurIPS2020.ttt"
 VREP_SCENE          = os.getcwd() + "/" + VREP_SCENE
+# ROBOT_INIT_POS = [1.8326221704483032, -0.5234822034835815, 2.094017505645752, 1.5711911916732788, 1.0472052097320557, 1.5707768201828003, 0.0]
 
 class Simulator(object):
     def __init__(self, args=None):
@@ -67,6 +68,9 @@ class Simulator(object):
         self.shape_size_replacement["wjqQmB74rnr_2.json"] = "pour all of it into the large square basin"
         self.shape_size_replacement["LgVK8qXGowA_2.json"] = "fill a little into the big round bowl"
         self.shape_size_replacement["JZ90qm46ooP_2.json"] = "fill everything into the biggest rectangular bowl"
+
+        self.subtasks = ['pick up the red cup','pour all of it into the yellow dish']
+        self.subtask_idx = 0
     
     def loadNlpCSV(self, path):
         self.nlp_dict = {}
@@ -167,6 +171,11 @@ class Simulator(object):
             strings=(), 
             bytes=""
         )
+    
+    def _releaseObject(self):
+        _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="releaseObject@control_script",
+                                        script_handle_or_type=1,
+                                        ints=(), floats=(), strings=(), bytes="")
 
     def _getClosesObject(self):
         oid, dist, _, _ = self.pyrep.script_call(function_name_at_script_name="getClosesObject@control_script",
@@ -338,9 +347,11 @@ class Simulator(object):
         res = 0
         if state[5] > 3.0:
             self._dropBall(1)
+            # self._releaseObject()
             res = 1
         if state[5] > 3.0 and self.last_rotation > state[5]:
             self._dropBall(2)
+            # self._releaseObject()
             res = 2
         self.last_rotation = state[5]
         return res
@@ -398,6 +409,8 @@ class Simulator(object):
             self._resetEnvironment()
             self._createEnvironment(data["ints"], data["floats"])
             self._setRobotInitial(gt_trajectory[0,:])
+
+            
             self.pyrep.step()
 
             eval_data["language"] = self._getLanguateInformation(data["voice"], 1)
@@ -552,15 +565,87 @@ class Simulator(object):
 
         prev   = []
         for i in range(nbowls + ncups):
+            print('object',i)
+            if i < nbowls:
+                print('bowl')
+            else:
+                print('cup')
             prev.append(genPosition(prev))
             floats += prev[-1]
             if i < nbowls and bowls[i] > 10:
+                print('square')
                 floats += [np.random.uniform(-math.pi/4.0,  math.pi/4.0)]
             else:
                 floats += [0.0]
+            print(prev[-1] + [floats[-1]])
 
         self._createEnvironment(ints, floats)
         self.node.get_logger().info("Created new environment")
+        # print(ints)
+        # print(floats)
+        return ints, floats
+
+    def _generateSetEnvironment(self, idx):
+        def genPosition(prev):
+            px = 0
+            py = 0
+            done = False        
+            while not done:
+                done = True        
+                px = np.random.uniform(-0.9, 0.35)
+                py = np.random.uniform(-0.9, 0.35)
+                dist = np.sqrt(px**2 + py**2)
+                if dist < 0.5 or dist > 0.9:
+                    done = False
+                for o in prev:
+                    if np.sqrt((px - o[0])**2 + (py - o[1])**2) < 0.25:
+                        done = False
+                if px > 0 and py > 0:
+                    done = False
+                angle = -45
+                r_px  = px * np.cos(np.deg2rad(angle)) + py * np.sin(np.deg2rad(angle))
+                r_py  = py * np.cos(np.deg2rad(angle)) - px * np.sin(np.deg2rad(angle))
+                if r_py > 0.075:
+                    done = False
+            return [px, py]
+        self._setRobotJoints(np.deg2rad(DEFAULT_UR5_JOINTS))
+
+        # set sim 1
+        if idx == "1":
+            # nbowls, ncups, bowl indices, cup indices
+            ints = [1,2,16,1,3]
+            floats = []
+            prev   = []
+            for i in range(3):
+                prev.append(genPosition(prev))
+                floats += prev[-1]
+                # floats += [np.random.uniform(-math.pi/4.0,  math.pi/4.0)]
+                floats += [0.0]
+            print('ints',ints)
+            print('floats',floats)
+            
+        
+        # set sim 2: one cup, two dishes with same shape
+        if idx == "2":
+            ncups  = 1
+            nbowls = 0
+            bowls  = np.array([])
+            cups   = np.array([1])
+            ints   = [nbowls, ncups] + bowls.tolist() + cups.tolist()
+            # floats = []
+
+            # prev   = []
+            # for i in range(nbowls + ncups):
+            #     prev.append(genPosition(prev))
+            #     floats += prev[-1]
+            #     if i < nbowls and bowls[i] > 10:
+            #         floats += [np.random.uniform(-math.pi/4.0,  math.pi/4.0)]
+            #     else:
+            #         floats += [0.0]
+            # floats = [-0.3729344335233845, -0.7545925672667124, 0.0, -0.6782126720874236, 0.13377958651432398, 0.0, -0.7036582227151307, -0.5488584657056841, 0.0]
+            floats = [-0.5, -0.5, 0]
+        self._createEnvironment(ints, floats)
+        self.node.get_logger().info("Created new set environment {}".format(idx))
         return ints, floats
 
     def simplifyVoice(self, voice):
@@ -577,13 +662,37 @@ class Simulator(object):
             self.rm_voice     = ""
             self.last_gripper = 0.0
             self._generateEnvironment()
+        if d_in in ("1", "2"):
+            self.rm_voice     = ""
+            self.last_gripper = 0.0
+            self._generateSetEnvironment(d_in)
+        if d_in == 'z':
+            self._stopRobotMovement()
+            self.rm_voice     = ""
+            self._releaseObject()
+            q_prime = np.append(np.deg2rad(DEFAULT_UR5_JOINTS),[0.0])
+            q = self._getRobotState()
+            error = np.linalg.norm(q - q_prime)
+            while error > 0.001:
+                self._setJointVelocityFromTarget(q_prime)
+                self.pyrep.step()
+                q = self._getRobotState()
+                error = np.linalg.norm(q - q_prime)
+            print('done')
         if d_in == "r":
             self.rm_voice     = ""
             self.last_gripper = 0.0
             self.node.get_logger().info("Resetting robot")
             self._resetEnvironment()
+            self.subtask_idx = 0
         elif d_in.startswith("t "):
+            print(self._getRobotState())
+            print(np.append(np.deg2rad(DEFAULT_UR5_JOINTS),[0.0]))
             self.rm_voice = d_in[2:]
+            self.cnt      = 0
+            print("Running Task: " + self.rm_voice)
+        elif d_in == 'dain':
+            self.rm_voice = self.subtasks[self.subtask_idx]
             self.cnt      = 0
             print("Running Task: " + self.rm_voice)
         elif self.rm_voice != "" and  d_in == "":
@@ -591,15 +700,48 @@ class Simulator(object):
             tf_trajectory, phase = self.predictTrajectory(self.rm_voice, self._getRobotState(), self.cnt)
             r_state              = tf_trajectory[-1,:]
             self.last_gripper    = r_state[6]
+            # r_state[5] = 1.5
             self._setJointVelocityFromTarget(r_state)
             self._maybeDropBall(r_state)
+            print('phase', phase)
 
             if phase >=0.95:
                 self.node.get_logger().info("Finished running trajectory with " + str(self.cnt) + " steps")
+                # self._releaseObject()
                 self._stopRobotMovement()
                 self.rm_voice = ""
 
+                # self.subtask_idx += 1
+                # # if subtasks remain, keep going
+                # if len(self.subtasks) > self.subtask_idx:
+                #     self._stopRobotMovement()
+                #     self.rm_voice = self.subtasks[self.subtask_idx]
+                #     self.cnt = 0
+                #     print("Running Task: " + self.rm_voice)
+                # else:
+                #     self._stopRobotMovement()
+                #     self.rm_voice = ""
+                #     self.subtask_idx = 0
+
         return True
+    
+    # def _moveJ(self, current, goal, pad_one=False):
+    #     g_pos, g_rot   = goal
+    #     if type(g_pos) == np.ndarray:
+    #         g_pos = g_pos.tolist()
+    #     if type(g_rot) == np.ndarray:
+    #         g_rot = g_rot.tolist()
+    #     if type(current) == np.ndarray:
+    #         current = current.tolist()
+    #     kdl_frame      = self.getTcpFromAngles(current)
+    #     s_pos          = [kdl_frame.p.x(), kdl_frame.p.y(), kdl_frame.p.z()]
+    #     goal_joints    = self.getJointAnglesFromCurrent(loc=g_pos, rot=g_rot, current=current)
+    #     distance       = np.sqrt( np.power(s_pos[0] - g_pos[0], 2) + np.power(s_pos[1] - g_pos[1], 2) + np.power(s_pos[2] - g_pos[2], 2) )
+    #     steps          = max(2, int(np.ceil(distance * TGEN_SPEED_FACTOR))) # at least 2 steps
+    #     joint_trj      = np.linspace(current, goal_joints, num=steps, endpoint=True, axis=0)
+    #     padding        = np.ones((joint_trj.shape[0], 1)) if pad_one else np.zeros((joint_trj.shape[0], 1))
+    #     joint_trj      = np.hstack((joint_trj, padding))
+    #     return joint_trj
     
     def runManually(self):
         self.rm_voice = ""
