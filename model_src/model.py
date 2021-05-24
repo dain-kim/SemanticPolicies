@@ -53,20 +53,32 @@ class PolicyTranslationModel(tf.keras.Model):
         return_sequences=True)
 
         self.features_for_bounding_box = None
-        self.subtasks = []
+        self.subtasks = tf.convert_to_tensor([], dtype=tf.float32)
         self.subtask_idx = 0
         self.cur_subtask = None
         self.subtask_attn = None
         self.subtask_embedding = None
         self.phase = 0.0
+        self.generated = None
+        self.subtask_phase = None
+        self._weights = None
+        self.dmp_dt = None
+        self.initial_state = None
+        self.As = tf.convert_to_tensor([], dtype=tf.float32)
     
     def reset_state(self):
-        self.subtasks = []
+        self.subtasks = tf.convert_to_tensor([], dtype=tf.float32)
         self.subtask_idx = 0
         self.cur_subtask = None
         self.subtask_attn = None
         self.subtask_embedding = None
         self.phase = 0.0
+        self.generated = None
+        self.subtask_phase = None
+        self._weights = None
+        self.dmp_dt = None
+        self.initial_state = None
+        self.As = tf.convert_to_tensor([], dtype=tf.float32)
     
     def tokenize(self, language):
         voice  = self.regex.sub("", language.strip().lower())
@@ -92,9 +104,65 @@ class PolicyTranslationModel(tf.keras.Model):
         fh.close()
         return __dictionary
     
-    # @tf.function
-    def generate_subtask_embedding(self, instruction, features, robot):
-        atn_w = tf.expand_dims(self.subtask_attn, 2)
+    @tf.function
+    def generate_embedding(self, inputs, training=False, use_dropout=True):
+        if training:
+            use_dropout = True
+
+        language   = inputs[0]
+        features   = inputs[1]
+        # local      = features[:,:,:5]
+        robot      = inputs[2]
+        # dmp_state  = inputs[3]
+        batch_size = tf.shape(language)[0]
+
+        language  = self.embedding(language)
+        language  = self.lng_gru(inputs=language, training=training) 
+
+        # Calculate attention and expand it to match the feature size
+        a = self.attention((language, features))
+        return a
+    
+    @tf.function
+    def generate_control(self, inputs, atn, training=False, use_dropout=True):
+        if training:
+            use_dropout = True
+
+        language   = inputs[0]
+        features   = inputs[1]
+        # local      = features[:,:,:5]
+        robot      = inputs[2]
+        # dmp_state  = inputs[3]
+        batch_size = tf.shape(language)[0]
+
+        
+
+        atn_w = tf.expand_dims(atn, 2)
+        atn_w = tf.tile(atn_w, [1, 1, 5])
+        # Compress image features and apply attention
+        cfeatures = tf.math.multiply(atn_w, features)
+        cfeatures = tf.math.reduce_sum(cfeatures, axis=1)
+
+        # Add the language to the mix again. Possibly usefull to predict dt
+        start_joints  = robot[:,0,:]
+        cfeatures = tf.keras.backend.concatenate((cfeatures, language, start_joints), axis=1)
+
+        # Policy Translation: Create weight + goal for DMP
+        pt          = self.pt_global(cfeatures)
+        pt          = self.dout(pt, training=tf.convert_to_tensor(use_dropout))
+        dmp_dt      = self.pt_dt_2(self.pt_dt_1(pt)) + 0.1 # 0.1 prevents division by 0, just in case
+
+        # Run the low-level controller
+        initial_state = [
+            start_joints,
+            tf.zeros(shape=[batch_size, self.units], dtype=tf.float32)
+        ]
+        generated, phase, weights = self.controller(inputs=robot, constants=(cfeatures, dmp_dt), initial_state=initial_state, training=training)
+        return generated, (atn, dmp_dt, phase, weights)
+    
+    @tf.function
+    def generate_subtask_embedding(self, instruction, features, robot, subtask_attn):
+        atn_w = tf.expand_dims(subtask_attn, 2)
         atn_w = tf.tile(atn_w, [1, 1, 5])
         # Compress image features and apply attention
         cfeatures = tf.math.multiply(atn_w, features)
@@ -103,9 +171,10 @@ class PolicyTranslationModel(tf.keras.Model):
         start_joints  = robot[:,0,:]
         cfeatures = tf.keras.backend.concatenate((cfeatures, instruction, start_joints), axis=1)
         # Save subtask embedding
+        # return cfeatures
         self.subtask_embedding = cfeatures
     
-    # @tf.function
+    @tf.function(experimental_relax_shapes=True)
     def prep_controller_call(self, robot, batch_size, use_dropout):
         pt          = self.pt_global(self.subtask_embedding)
         pt          = self.dout(pt, training=tf.convert_to_tensor(use_dropout))
@@ -113,30 +182,95 @@ class PolicyTranslationModel(tf.keras.Model):
         # dmp_dt      = d_out[2]
 
         # Run the low-level controller
-        start_joints  = robot[:,0,:]
         initial_state = [
-            start_joints,
+            robot[:,0,:],
             tf.zeros(shape=[batch_size, self.units], dtype=tf.float32)
         ]
         return dmp_dt, initial_state
     
-    @tf.function
+    @tf.function(experimental_relax_shapes=True)
+    def controller_call(self, robot, batch_size, use_dropout, training):
+        # s = time.time()
+        dmp_dt, initial_state = self.prep_controller_call(robot, batch_size, use_dropout)
+        generated, subtask_phase, weights = self.controller(inputs=robot, constants=(self.subtask_embedding, dmp_dt), initial_state=initial_state, training=training)
+        # subtask_phase     = tf.math.reduce_mean(subtask_phase, axis=0).numpy()
+        # subtask_phase     = subtask_phase[-1,0]
+        # self.phase = subtask_phase / (len(self.subtasks)+0.1) # prevent zero division error
+        # subtask_phase = 0.05
+        # self.phase += subtask_phase # TODO overriden for tf.function test
+        # print('controller:',round(time.time()-s, 3),'seconds')
+        return generated, subtask_phase, weights, dmp_dt, initial_state
+    
+    def prep(self, inputs, training):
+        def random_choose(a, thresh=0.9):
+                sig = tf.nn.sigmoid(a)
+                # randomly chooses the column index where sigmoid value >= thresh
+                try:
+                    idx = np.random.choice(np.where(sig[0]>=thresh)[0])
+                except:
+                    idx = 0
+                # print('Mask options:',sig[0])
+                z = np.zeros((a.shape[1]), dtype="float32")
+                z[idx] = 1
+                mask = np.tile(z, (a.shape[0],1))
+                return mask
+                
+        s = time.time()
+        print('\nPREP')
+        language   = inputs[0]
+        features   = inputs[1]
+        robot      = inputs[2]
+        if tf.equal(tf.size(self.subtasks), 0): #S_0
+            subtasks = semantic_parser(language)
+            # self.subtasks = subtasks
+            # catch case where command is malformed / no subtasks are generated from command
+            # if subtasks == []:
+            #     return self.old_call(inputs, training=training, use_dropout=use_dropout)
+            # if self.cur_subtask is None:
+            # self.subtasks = []
+            # self.As = []
+
+            # for subtask in subtasks:
+            subtask = subtasks[0]
+            cur_subtask = self.tokenize(subtask)
+            cur_subtask = cur_subtask + [0] * (15-len(cur_subtask))
+            cur_subtask = tf.convert_to_tensor(np.tile([cur_subtask],[250, 1]), dtype=tf.int64)
+            self.batch_size = tf.shape(cur_subtask)[0]
+            cur_subtask_embedded = self.embedding(cur_subtask)
+            cur_subtask_embedded = self.lng_gru(inputs=cur_subtask_embedded, training=training)
+            a = self.attention((cur_subtask_embedded, features))
+            self.As = a
+            subtask_attn = tf.numpy_function(random_choose, [a], tf.float32)
+            subtask_attn = tf.convert_to_tensor(subtask_attn, dtype=tf.float32)
+            subtask_embedding = self.generate_subtask_embedding(cur_subtask_embedded, features, robot, subtask_attn)
+            self.subtasks = subtask_embedding
+            # Convert to tf object
+            self.subtasks = tf.convert_to_tensor([self.subtasks], dtype=tf.float32)
+            print(tf.size(self.subtasks), 'subtask embeddings generated')
+            self.As = tf.convert_to_tensor([self.As], dtype=tf.float32)
+        print('done with prep', round(time.time()-s, 3))
+        
+
+    # @tf.function
     def call(self, inputs, training=False, use_dropout=True):
-        ss = time.time()
         if training:
             use_dropout = True
         
-        if self.features_for_bounding_box:
-            show_bounding_boxes(self.features_for_bounding_box[0],
-                                self.features_for_bounding_box[1],
-                                self.features_for_bounding_box[2],
-                                self.features_for_bounding_box[3])
+        if tf.equal(tf.size(self.subtasks), 0):
+            print('init')
+            return self.old_call(inputs, training=training, use_dropout=use_dropout)
+        
+        # if self.features_for_bounding_box:
+        #     show_bounding_boxes(self.features_for_bounding_box[0],
+        #                         self.features_for_bounding_box[1],
+        #                         self.features_for_bounding_box[2],
+        #                         self.features_for_bounding_box[3])
 
         language   = inputs[0]
         features   = inputs[1]
         robot      = inputs[2]
         # dmp_state  = inputs[3]
-        tf.config.experimental_run_functions_eagerly(True)
+        # tf.config.experimental_run_functions_eagerly(True)
 
         if self.subtasks == []: #S_0
             s = time.time()
@@ -160,11 +294,11 @@ class PolicyTranslationModel(tf.keras.Model):
             #
             print('embedded current subtask instruction: ',round(time.time()-s, 3),'seconds')
         
-        # input_data = (
-        #     self.cur_subtask,
-        #     features,
-        #     robot
-        # )
+        input_data = (
+            self.cur_subtask,
+            features,
+            robot
+        )
         # return self.old_call(input_data, training=training, use_dropout=use_dropout)
 
         batch_size = tf.shape(self.cur_subtask)[0]
@@ -209,52 +343,82 @@ class PolicyTranslationModel(tf.keras.Model):
             print('generate subtask embedding:',round(time.time()-s, 3),'seconds')
 
         # Policy Translation: Create weight + goal for DMP
+        print('>>>model.py',tf.executing_eagerly())
         s = time.time()
-        # pt          = self.pt_global(self.subtask_embedding)
-        # pt          = self.dout(pt, training=tf.convert_to_tensor(use_dropout))
-        # dmp_dt      = self.pt_dt_2(self.pt_dt_1(pt)) + 0.1 # 0.1 prevents division by 0, just in case
-        # # dmp_dt      = d_out[2]
 
-        # # Run the low-level controller
-        # start_joints  = robot[:,0,:]
-        # initial_state = [
-        #     start_joints,
-        #     tf.zeros(shape=[batch_size, self.units], dtype=tf.float32)
-        # ]
-        dmp_dt, initial_state = self.prep_controller_call(robot, batch_size, use_dropout)
-        print('prep for calling controller:',round(time.time()-s, 3),'seconds')
-        s = time.time()
-        generated, subtask_phase, weights = self.controller(inputs=robot, constants=(self.subtask_embedding, dmp_dt), initial_state=initial_state, training=training)
-        # subtask_phase = tf.compat.v1.Print(subtask_phase, [subtask_phase], "subtask_phase: ", summarize=6*5)
-        print('controller model:',round(time.time()-s, 3),'seconds')
-        s = time.time()
-        subtask_phase     = tf.math.reduce_mean(subtask_phase, axis=0).numpy()
-        subtask_phase     = subtask_phase[-1,0]
-        self.phase = subtask_phase / (len(self.subtasks)+0.1) # prevent zero division error
-        # subtask_phase = 0.05
+        # pt          = self.pt_global(self.subtasks[self.subtask_idx])
+        # self.subtasks = tf.compat.v1.Print(self.subtasks, [self.subtasks], "self.subtasks: ", summarize=250*6*5)
+        # self.subtask_idx = tf.compat.v1.Print(self.subtask_idx, [self.subtask_idx], "self.subtask_idx: ", summarize=5)
+        pt          = self.pt_global(self.subtasks)
+        pt          = self.dout(pt, training=tf.convert_to_tensor(use_dropout))
+        dmp_dt      = self.pt_dt_2(self.pt_dt_1(pt)) + 0.1
+
+        initial_state = [
+            inputs[2][:,0,:],
+            tf.zeros(shape=[self.batch_size, self.units], dtype=tf.float32)
+        ]
+        generated, phase, weights = self.controller(inputs=inputs[2], constants=(self.subtasks, dmp_dt), initial_state=initial_state, training=training)
+        print('inside the call function ', round(time.time()-s,3))
+        return generated, (self.As, dmp_dt, phase, weights)
+        # generated, (subtask_phase, _weights, dmp_dt, initial_state) = self.controller_call(robot, self.batch_size, use_dropout, training)
+        # self.generated, self.subtask_phase, self._weights, self.dmp_dt, self.initial_state = self.controller_call(robot, tf.shape(self.cur_subtask)[0], use_dropout, training)
+        # self.subtask_phase     = tf.math.reduce_mean(self.subtask_phase, axis=0).numpy()
+        # self.subtask_phase     = self.subtask_phase[-1,0]
+        # generated = tf.compat.v1.Print(generated, [generated], "generated: ", summarize=250*6*5)
+        
+        # s = time.time()
+        # # pt          = self.pt_global(self.subtask_embedding)
+        # # pt          = self.dout(pt, training=tf.convert_to_tensor(use_dropout))
+        # # dmp_dt      = self.pt_dt_2(self.pt_dt_1(pt)) + 0.1 # 0.1 prevents division by 0, just in case
+        # # # dmp_dt      = d_out[2]
+
+        # # # Run the low-level controller
+        # # start_joints  = robot[:,0,:]
+        # # initial_state = [
+        # #     start_joints,
+        # #     tf.zeros(shape=[batch_size, self.units], dtype=tf.float32)
+        # # ]
+        # dmp_dt, initial_state = self.prep_controller_call(robot, batch_size, use_dropout)
+        # # print('prep for calling controller:',round(time.time()-s, 3),'seconds')
+        # # s = time.time()
+        # generated, subtask_phase, weights = self.controller(inputs=robot, constants=(self.subtask_embedding, dmp_dt), initial_state=initial_state, training=training)
+        # # subtask_phase = tf.compat.v1.Print(subtask_phase, [subtask_phase], "subtask_phase: ", summarize=6*5)
+        # print('controller model:',round(time.time()-s, 3),'seconds')
+        # s = time.time()
+        # self.subtask_phase     = tf.math.reduce_mean(self.subtask_phase, axis=0).numpy()
+        # self.subtask_phase     = self.subtask_phase[-1,0]
+        # self.phase = self.subtask_phase / (len(self.subtasks)+0.1) # prevent zero division error
+        # subtask_phase = 0.01
         # self.phase += subtask_phase # TODO overriden for tf.function test
-        print('calculate subtask phase:',round(time.time()-s, 3),'seconds')
+        # print('calculate subtask phase:',round(time.time()-s, 3),'seconds')
+
+
+
         # check state condition
-        if subtask_phase > 0.95:
-            # move onto the next subtask
-            print('moving onto next subtask..')
-            self.subtask_idx += 1
-            self.cur_subtask = None
-            self.subtask_attn = None
-            self.subtask_embedding = None
+        # if subtask_phase > 0.95:
+        # if self.phase > 0.9 and self.subtask_idx < len(self.subtasks): #S_f
+        #     # move onto the next subtask
+        #     print('moving onto next subtask..')
+        #     self.phase = 0.0
+        #     self.subtask_idx += 1
+        #     self.cur_subtask = None
+        #     self.subtask_attn = None
+        #     self.subtask_embedding = None
         
-        tf.config.experimental_run_functions_eagerly(False)
+        # tf.config.experimental_run_functions_eagerly(False)
         
-        if self.phase > 0.95 or self.subtask_idx >= len(self.subtasks): #S_f
-            print('-----DONE WITH ALL SUBTASKS-----')
-            self.reset_state()
-            print('MODEL TOOK:',round(time.time()-ss, 3),'seconds')
-            return generated, (self.subtask_attn, dmp_dt, 1.0, weights)
-        print('MODEL TOOK:',round(time.time()-ss, 3),'seconds')
-        return generated, (self.subtask_attn, dmp_dt, self.phase, weights)
+        # if self.phase > 0.99 or self.subtask_idx >= len(self.subtasks): #S_f
+        #     print('-----DONE WITH ALL SUBTASKS-----')
+        #     self.reset_state()
+        #     print('MODEL TOOK:',round(time.time()-ss, 3),'seconds')
+        #     return self.generated, (self.subtask_attn, self.dmp_dt, 1.0, self._weights)
+        # print('MODEL TOOK:',round(time.time()-ss, 3),'seconds')
+        # return self.generated, (self.subtask_attn, self.dmp_dt, self.phase, self._weights)
+        return generated, (subtask_attn, dmp_dt, subtask_phase, weights)
 
            
     @tf.function
+    # TODO try breaking this down into several tf.functions, see where it breaks
     def old_call(self, inputs, training=False, use_dropout=True):
         if training:
             use_dropout = True
@@ -273,7 +437,7 @@ class PolicyTranslationModel(tf.keras.Model):
         a = self.attention((language, features))
         # atn = tf.nn.sigmoid(a)
         # atn = a
-        # TODO: selection process [0,1,0,0,0,0]
+        # selection process [0,1,0,0,0,0]
         def random_choose(a, thresh=0.9):
             sig = tf.nn.sigmoid(a)
             # randomly chooses the column index where sigmoid value >= thresh
@@ -301,17 +465,11 @@ class PolicyTranslationModel(tf.keras.Model):
         atn_w = tf.tile(atn_w, [1, 1, 5])
         # Compress image features and apply attention
         cfeatures = tf.math.multiply(atn_w, features)
-        # print(atn_w)
-        # atn_w = tf.compat.v1.Print(atn_w, [atn_w], "atn_w: ", summarize=6*5*3)
-        # TODO: list of commands here
-        # TODO: low-level call function
-        # how is the confidence computed? Does it add to 1?
         cfeatures = tf.math.reduce_sum(cfeatures, axis=1)
 
         # Add the language to the mix again. Possibly usefull to predict dt
         start_joints  = robot[:,0,:]
         cfeatures = tf.keras.backend.concatenate((cfeatures, language, start_joints), axis=1)
-        # cfeatures = tf.compat.v1.Print(cfeatures, [cfeatures], "cfeatures: ", summarize=44)
 
         # Policy Translation: Create weight + goal for DMP
         pt          = self.pt_global(cfeatures)

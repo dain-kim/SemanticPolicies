@@ -71,6 +71,7 @@ class NetworkService():
         self.service_nn = self.node.create_service(NetworkPT,   "/network",      self.cbk_network_dmp_ros2)
         self.normalization = pickle.load(open(NORM_PATH, mode="rb"), encoding="latin1")
         print("Ready")
+        self.first_call = True
 
     def runNode(self):
         while rclpy.ok():
@@ -164,6 +165,7 @@ class NetworkService():
         if req.reset:
             self.req_step = 0
             self.sfp_history = []
+            self.first_call = True
             try:
                 image = self.imgmsg_to_cv2(req.image)
             except CvBridgeError as e:
@@ -200,19 +202,28 @@ class NetworkService():
             tf.convert_to_tensor(np.tile([self.features],[250, 1, 1]), dtype=tf.float32),
             tf.convert_to_tensor(np.tile([robot],[250, 1, 1]), dtype=tf.float32)
         )
+
+        # if self.first_call:
+        #     model.prep(self.input_data, training=tf.constant(False))
+        #     self.first_call = False
+
+
+        print('>>>service.py',tf.executing_eagerly())
         s = time.time()
         generated, (atn, dmp_dt, phase, weights) = model(self.input_data, training=tf.constant(False), use_dropout=tf.constant(True))
-        print('model took', round(time.time() - s,2), 'seconds to run')
+        print('model took', round(time.time() - s,3), 'seconds to run')
+        s = time.time()
         self.trj_gen    = tf.math.reduce_mean(generated, axis=0).numpy()
         self.trj_std    = tf.math.reduce_std(generated, axis=0).numpy()
         self.timesteps  = int(tf.math.reduce_mean(dmp_dt).numpy() * 500)
         self.b_weights  = tf.math.reduce_mean(weights, axis=0).numpy()
 
-        # phase_value     = tf.math.reduce_mean(phase, axis=0).numpy()
-        # phase_value     = phase_value[-1,0]
-        phase_value = phase
+        phase_value     = tf.math.reduce_mean(phase, axis=0).numpy()
+        phase_value     = phase_value[-1,0]
+        # phase_value = phase
 
         self.sfp_history.append(self.b_weights[-1,:,:])
+        print('.numpy functions', round(time.time() - s,3), 'seconds to run')
         if phase_value > 0.95 and len(self.sfp_history) > 100:
             trj_len    = len(self.sfp_history)
             basismodel = GaussianModel(degree=11, scale=0.012, observed_dof_names=("Base","Shoulder","Ellbow","Wrist1","Wrist2","Wrist3","Gripper"))
@@ -232,6 +243,8 @@ class NetworkService():
             np.save("gen_trajectory", gen_trajectory)            
 
             self.sfp_history = []
+            self.first_call = True
+            model.reset_state()
         
         self.req_step += 1
         return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), float(phase_value)) 

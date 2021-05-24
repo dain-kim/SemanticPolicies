@@ -3,6 +3,8 @@ import nltk
 # tree docs: https://www.nltk.org/_modules/nltk/tree.html
 # more tree docs: http://www.nltk.org/howto/tree.html
 # grammar docs: https://www.nltk.org/book/ch08.html and http://www.nltk.org/howto/generate.html
+# from nltk.draw.util import CanvasFrame
+# from nltk.draw import TreeWidget
 
 def subfinder(mylist, pattern):
     matches = []
@@ -98,7 +100,13 @@ def semantic_parser(sentence):
         grammar = nltk.CFG.fromstring(grammar_string)
         parser = nltk.ChartParser(grammar)
         for tree in parser.parse(tags):
+            # cf = CanvasFrame()
             trees.append(tree)
+            # tc = TreeWidget(cf.canvas(),tree)
+            # cf.add_widget(tc,10,10) # (10,10) offsets
+            # cf.print_to_file('tree.ps')
+            # tree.draw()
+            # cf.destroy()
         return trees
     
     def get_abs_idx(tree, tree_idx):
@@ -129,7 +137,7 @@ def semantic_parser(sentence):
         loc_l = tokens[get_abs_idx(tree,[subtree_idx,0]):get_abs_idx(tree,[subtree_idx,0])+len(tree[subtree_idx])]
         # subtask = ' '.join(['place', 'it'] + loc_l)
         # TODO change once "place" is recognized
-        subtask = ' '.join(['pour', 'it'] + loc_l)
+        subtask = ' '.join(['place', 'it'] + loc_l)
         subtasks.append(subtask)
         return subtasks
     
@@ -290,12 +298,13 @@ def _parser_old(sentence):
 
 if __name__ == "__main__":
     sentences = [
-        "pick up the cup",
-        "put it in the bin",
-        "put the green cup in the red bin",
-        "pick up the cup and put it in the bin",
-        "put all the yellow cups in the red bin",
+        # "pick up the cup",
+        # "put it in the bin",
+        # "put the green cup in the red bin",
+        # "pick up the cup and put it in the bin",
+        # "put all the yellow cups in the red bin",
         "place two red cups and one green cup in the red bin"
+        # "pick up the red cup and put it in the bin"
     ]
     for sentence in sentences:
         semantic_parser(sentence)
