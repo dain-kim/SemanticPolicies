@@ -122,6 +122,7 @@ class PolicyTranslationModel(tf.keras.Model):
     
     # @tf.function
     def call(self, inputs, training=False, use_dropout=True):
+        print('---call---')
         ss = time.time()
         if training:
             use_dropout = True
@@ -227,31 +228,32 @@ class PolicyTranslationModel(tf.keras.Model):
         generated, subtask_phase, weights = self.controller(inputs=robot, constants=(self.subtask_embedding, dmp_dt), initial_state=initial_state, training=training)
         # subtask_phase = tf.compat.v1.Print(subtask_phase, [subtask_phase], "subtask_phase: ", summarize=6*5)
         print('controller model:',round(time.time()-s, 3),'seconds')
-        s = time.time()
-        subtask_phase     = tf.math.reduce_mean(subtask_phase, axis=0).numpy()
-        subtask_phase     = subtask_phase[-1,0]
-        self.phase = subtask_phase / (len(self.subtasks)+0.1) # prevent zero division error
-        # subtask_phase = 0.05
-        # self.phase += subtask_phase # TODO overriden for tf.function test
-        print('calculate subtask phase:',round(time.time()-s, 3),'seconds')
-        # check state condition
-        if subtask_phase > 0.95:
-            # move onto the next subtask
-            print('moving onto next subtask..')
-            self.subtask_idx += 1
-            self.cur_subtask = None
-            self.subtask_attn = None
-            self.subtask_embedding = None
+        # s = time.time()
+        # subtask_phase     = tf.math.reduce_mean(subtask_phase, axis=0).numpy()
+        # subtask_phase     = subtask_phase[-1,0]
+        # self.phase = subtask_phase / (len(self.subtasks)+0.1) # prevent zero division error
+        # # subtask_phase = 0.05
+        # # self.phase += subtask_phase # TODO overriden for tf.function test
+        # print('calculate subtask phase:',round(time.time()-s, 3),'seconds')
+        # # check state condition
+        # if subtask_phase > 0.95:
+        #     # move onto the next subtask
+        #     print('moving onto next subtask..')
+        #     self.subtask_idx += 1
+        #     self.cur_subtask = None
+        #     self.subtask_attn = None
+        #     self.subtask_embedding = None
         
         tf.config.experimental_run_functions_eagerly(False)
         
-        if self.phase > 0.95 or self.subtask_idx >= len(self.subtasks): #S_f
-            print('-----DONE WITH ALL SUBTASKS-----')
-            self.reset_state()
-            print('MODEL TOOK:',round(time.time()-ss, 3),'seconds')
-            return generated, (self.subtask_attn, dmp_dt, 1.0, weights)
-        print('MODEL TOOK:',round(time.time()-ss, 3),'seconds')
-        return generated, (self.subtask_attn, dmp_dt, self.phase, weights)
+        # if self.phase > 0.95 or self.subtask_idx >= len(self.subtasks): #S_f
+        #     print('-----DONE WITH ALL SUBTASKS-----')
+        #     self.reset_state()
+        #     print('MODEL TOOK:',round(time.time()-ss, 3),'seconds')
+        #     return generated, (self.subtask_attn, dmp_dt, 1.0, weights)
+        # print('MODEL TOOK:',round(time.time()-ss, 3),'seconds')
+        # return generated, (self.subtask_attn, dmp_dt, self.phase, weights)
+        return generated, (self.subtask_attn, dmp_dt, subtask_phase, weights)
 
            
     @tf.function

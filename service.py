@@ -208,30 +208,40 @@ class NetworkService():
         self.timesteps  = int(tf.math.reduce_mean(dmp_dt).numpy() * 500)
         self.b_weights  = tf.math.reduce_mean(weights, axis=0).numpy()
 
-        # phase_value     = tf.math.reduce_mean(phase, axis=0).numpy()
-        # phase_value     = phase_value[-1,0]
-        phase_value = phase
+        phase_value     = tf.math.reduce_mean(phase, axis=0).numpy()
+        phase_value     = phase_value[-1,0]
+        # phase_value = phase
 
         self.sfp_history.append(self.b_weights[-1,:,:])
-        if phase_value > 0.95 and len(self.sfp_history) > 100:
-            trj_len    = len(self.sfp_history)
-            basismodel = GaussianModel(degree=11, scale=0.012, observed_dof_names=("Base","Shoulder","Ellbow","Wrist1","Wrist2","Wrist3","Gripper"))
-            domain     = np.linspace(0, 1, trj_len, dtype=np.float64)
-            trajectories = []
-            for i in range(trj_len):
-                trajectories.append(np.asarray(basismodel.apply_coefficients(domain, self.sfp_history[i].flatten())))
-            trajectories = np.asarray(trajectories)
-            np.save("trajectories", trajectories)
-            np.save("history", self.history)
+        if phase_value > 0.94:
+            print('moving onto next subtask..')
+            model.subtask_idx += 1
+            model.cur_subtask = None
+            model.subtask_attn = None
+            model.subtask_embedding = None
+            if model.subtask_idx >= len(model.subtasks):
+                print('-----DONE WITH ALL SUBTASKS-----')
+        # if phase_value > 0.95 and len(self.sfp_history) > 100:
+                trj_len    = len(self.sfp_history)
+                basismodel = GaussianModel(degree=11, scale=0.012, observed_dof_names=("Base","Shoulder","Ellbow","Wrist1","Wrist2","Wrist3","Gripper"))
+                domain     = np.linspace(0, 1, trj_len, dtype=np.float64)
+                trajectories = []
+                for i in range(trj_len):
+                    trajectories.append(np.asarray(basismodel.apply_coefficients(domain, self.sfp_history[i].flatten())))
+                trajectories = np.asarray(trajectories)
+                np.save("trajectories", trajectories)
+                np.save("history", self.history)
 
-            gen_trajectory = []
-            var_trj        = np.zeros((trj_len, trj_len, 7), dtype=np.float32)
-            for w in range(trj_len):
-                gen_trajectory.append(trajectories[w,w,:])
-            gen_trajectory = np.asarray(gen_trajectory)
-            np.save("gen_trajectory", gen_trajectory)            
+                gen_trajectory = []
+                var_trj        = np.zeros((trj_len, trj_len, 7), dtype=np.float32)
+                for w in range(trj_len):
+                    gen_trajectory.append(trajectories[w,w,:])
+                gen_trajectory = np.asarray(gen_trajectory)
+                np.save("gen_trajectory", gen_trajectory)            
 
-            self.sfp_history = []
+                self.sfp_history = []
+                model.reset_state()
+
         
         self.req_step += 1
         return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), float(phase_value)) 
