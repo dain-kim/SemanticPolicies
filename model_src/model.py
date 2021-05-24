@@ -120,7 +120,7 @@ class PolicyTranslationModel(tf.keras.Model):
         ]
         return dmp_dt, initial_state
     
-    @tf.function
+    # @tf.function
     def call(self, inputs, training=False, use_dropout=True):
         ss = time.time()
         if training:
