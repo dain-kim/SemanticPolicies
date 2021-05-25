@@ -223,12 +223,16 @@ class NetworkService():
         # phase_value = phase
 
         self.sfp_history.append(self.b_weights[-1,:,:])
-        if phase_value > 0.94:
+        if phase_value > 0.94 and not self.flipped:
+            print('old subtask idx', self.subtask_idx)
             print('moving onto next subtask..')
             self.subtask_idx += 1
             self.cur_subtask = None
             self.subtask_attn = None
             self.subtask_embedding = None
+            self.flipped = True
+            print('new subtask idx:', self.subtask_idx)
+            print(len(self.subtasks), 'subtasks')
             if self.subtask_idx >= len(self.subtasks):
                 print('-----DONE WITH ALL SUBTASKS-----')
         # if phase_value > 0.95 and len(self.sfp_history) > 100:
@@ -250,11 +254,11 @@ class NetworkService():
                 np.save("gen_trajectory", gen_trajectory)            
 
                 self.sfp_history = []
-                # self.first_call = True
-                # model.reset_state()
                 self.reset_state()
             else:
                 self.prep(self.input_data, training=tf.constant(False))
+        elif phase_value <= 0.94:
+            self.flipped = False
 
         
         self.req_step += 1
@@ -311,6 +315,7 @@ class NetworkService():
         # dmp_state  = inputs[3]
 
         if self.subtasks == []: #S_0
+            print(' generating subtasks')
             subtasks = semantic_parser(language)
             self.subtasks = subtasks
             # catch case where command is malformed / no subtasks are generated from command
@@ -320,12 +325,14 @@ class NetworkService():
 
         # Call word embedding only once at the beginning for efficiency
         if self.cur_subtask is None:
+            print(' tokenizing subtask', self.subtask_idx+1)
             cur_subtask = self.subtasks[self.subtask_idx]
             cur_subtask = self.tokenize(cur_subtask)
             cur_subtask = cur_subtask + [0] * (15-len(cur_subtask))
             self.cur_subtask = tf.convert_to_tensor(np.tile([cur_subtask],[250, 1]), dtype=tf.int64)
 
         if self.subtask_embedding is None:
+            print(' embedding subtask')
             instruction  = model.embedding(self.cur_subtask)
             instruction  = model.lng_gru(inputs=instruction, training=training) 
 
@@ -347,7 +354,7 @@ class NetworkService():
             self.subtask_attn = tf.convert_to_tensor(self.subtask_attn, dtype=tf.float32)
 
             self.generate_subtask_embedding(instruction, features, robot)
-            print('prep:',round(time.time()-s, 3),'seconds')
+        print('prep finished',round(time.time()-s, 3),'seconds')
     
     def generate_subtask_embedding(self, instruction, features, robot):
         # print('subtask embedding running on graph mode? ', not tf.executing_eagerly())
@@ -370,6 +377,7 @@ class NetworkService():
         self.subtask_attn = None
         self.subtask_embedding = None
         self.phase = 0.0
+        self.flipped = False
         # self.batch_size = None
     
 if __name__ == "__main__":

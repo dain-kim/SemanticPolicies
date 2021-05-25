@@ -107,18 +107,7 @@ class PolicyTranslationModel(tf.keras.Model):
     
     @tf.function
     def call_controller(self, robot, batch_size, subtask_embedding, use_dropout, training):
-        # dmp_dt, initial_state = self.prep_controller_call(robot, batch_size, subtask_embedding, use_dropout)
-        pt          = self.pt_global(subtask_embedding)
-        pt          = self.dout(pt, training=tf.convert_to_tensor(use_dropout))
-        dmp_dt      = self.pt_dt_2(self.pt_dt_1(pt)) + 0.1 # 0.1 prevents division by 0, just in case
-        # dmp_dt      = d_out[2]
-
-        # Run the low-level controller
-        start_joints  = robot[:,0,:]
-        initial_state = [
-            start_joints,
-            tf.zeros(shape=[batch_size, self.units], dtype=tf.float32)
-        ]
+        dmp_dt, initial_state = self.prep_controller_call(robot, batch_size, subtask_embedding, use_dropout)
         generated, subtask_phase, weights = self.controller(inputs=robot, constants=(subtask_embedding, dmp_dt), initial_state=initial_state, training=training)
         return generated, subtask_phase, weights, dmp_dt
     
