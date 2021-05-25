@@ -227,8 +227,7 @@ class NetworkService():
             self.first_call = False
         # get the embedding of the current subtask
         try:
-            task_embedding = self.subtask_embeddings[self.subtask_idx]
-            print('task embedding\n', task_embedding[0])
+            task_embedding = self.subtask_embeddings[self.subtask_idx]            
         except:
             print('You shouldn\'t be here')
             return
@@ -239,7 +238,11 @@ class NetworkService():
             tf.convert_to_tensor(np.tile([self.features],[250, 1, 1]), dtype=tf.float32),
             tf.convert_to_tensor(np.tile([robot],[250, 1, 1]), dtype=tf.float32)
         )
-        
+        print("OBJECTS DETECTED (classes and boxes)")
+        print(self.features)
+        print("TASK EMBEDDING")
+        print('task embedding\n', task_embedding[0])
+
         print("Before the new call")
         s = time.time()
         generated, (atn, dmp_dt, phase, weights) = model.new_call(input_data, task_embedding, training=tf.constant(False), use_dropout=tf.constant(True))

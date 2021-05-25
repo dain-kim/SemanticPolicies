@@ -688,27 +688,42 @@ class Simulator(object):
                 else:
                     floats += [0.0]
 
-            
             # floats = [-0.6706283735164196, -0.367048866651563, 0.5677358902060654, -0.38444069922215474, -0.5240614358568401, 0.0, -0.005800754313754042, -0.5434291140615598, 0.0]
             floats = [-0.4841615916276253, -0.3829838314703341, -0.05021171096973509, -0.7201993483166631, -0.12716774121561158, 0.0, -0.34769231510157994, -0.6539479616451864, 0.0]
 
-            
-            print(floats)        
 
-
-        # Sim 3: several cups and one bin
-        # "put all the red cups in the bin"
+        # Sim 2: two cups with same colors and one bin
+        # "put the red cup in the bin"
         elif idx == "3":
-            ints = [1,3,1,1,3,4]
+            ints = [1,2,2, 1,2]
             floats = []
             prev   = []
-            for i in range(4):
+            for i in range(3):
                 prev.append(genPosition(prev))
                 floats += prev[-1]
                 if i < ints[0]:
                     floats += [np.random.uniform(-math.pi/4.0,  math.pi/4.0)]
                 else:
                     floats += [0.0]
+
+            # floats = [-0.6706283735164196, -0.367048866651563, 0.5677358902060654, -0.38444069922215474, -0.5240614358568401, 0.0, -0.005800754313754042, -0.5434291140615598, 0.0]
+            floats = [-0.4841615916276253, -0.3829838314703341, -0.05021171096973509, -0.7201993483166631, -0.12716774121561158, 0.0, -0.34769231510157994, -0.6539479616451864, 0.0]
+
+
+
+        # Sim 3: several cups and one bin
+        # # "put all the red cups in the bin"
+        # elif idx == "3":
+        #     ints = [1,3,1,1,3,4]
+        #     floats = []
+        #     prev   = []
+        #     for i in range(4):
+        #         prev.append(genPosition(prev))
+        #         floats += prev[-1]
+        #         if i < ints[0]:
+        #             floats += [np.random.uniform(-math.pi/4.0,  math.pi/4.0)]
+        #         else:
+        #             floats += [0.0]
 
         # Sim 4: several cups and several bins
         # "put all the red cups in the blue bin"
