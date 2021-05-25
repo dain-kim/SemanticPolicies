@@ -84,7 +84,6 @@ def semantic_parser(sentence):
         if word in keywords.keys():
             tagged[i] = (word, keywords[word])    
     tags = [tag for (word, tag) in tagged]
-    # print(tagged)
 
     grammar_string = """
         S -> V O | V O L | V O CC V O L | V O CC O L | V O CC O CC O L
@@ -104,8 +103,6 @@ def semantic_parser(sentence):
     def get_abs_idx(tree, tree_idx):
         rel_idx = [len(i) for i in tree]
         return sum(rel_idx[:tree_idx[0]]) + (tree_idx[1]%len(tree[tree_idx[0]]))
-        # for idx in rel_idx:
-        #     remainder = abs_idx - idx
     
     def generate_pick_tasks(tree, subtree_idx):
         subtasks = []
@@ -127,7 +124,6 @@ def semantic_parser(sentence):
     def generate_place_tasks(tree, subtree_idx):
         subtasks = []
         loc_l = tokens[get_abs_idx(tree,[subtree_idx,0]):get_abs_idx(tree,[subtree_idx,0])+len(tree[subtree_idx])]
-        # subtask = ' '.join(['place', 'it'] + loc_l)
         # TODO change once "place" is recognized
         subtask = ' '.join(['pour', 'it'] + loc_l)
         subtasks.append(subtask)
@@ -147,81 +143,52 @@ def semantic_parser(sentence):
         if len(tree) not in [2,3,5,6,7]:
             print('ERROR: grammar appears to be misformed')
             return []
+
         if len(tree) == 2:
             # V O
             print('no subtasks generated')
             print([sentence])
             return [sentence]
+
         elif len(tree) == 3:
             # V O L
             subtasks = []
-            # # pick task
-            # if tree[1,-1] == 'NN':
-            #     # single object
-            #     obj_l = tokens[get_abs_idx(tree,[1,0]):get_abs_idx(tree,[1,0])+len(tree[1])]
-            #     subtask = ' '.join(['pick', 'up'] + obj_l)
-            #     subtasks.append(subtask)
-            # elif tree[1,-1] == 'NNS':
-            #     # multiple objects
-            #     pass #TODO
+            # TEMP hack to handle second command "put it in the dish" when the robot is holding something
+            if tags[1] == 'PRP':
+                print('no subtasks generated')
+                print([sentence])
+                return [sentence]
+            
             subtasks += generate_pick_tasks(tree, 1)
-            # loc_l = tokens[get_abs_idx(tree,[2,0]):get_abs_idx(tree,[2,0])+len(tree[2])]
-            # subtask = ' '.join(['place', 'it'] + loc_l)
-            # subtasks.append(subtask)
             place_subtasks = generate_place_tasks(tree, 2)*len(subtasks)
             # interleave
             subtasks = [val for pair in zip(subtasks, place_subtasks) for val in pair]
             print('generated subtasks:', subtasks)
             return subtasks
+
         elif len(tree) == 5:
             # V O CC O L
             subtasks = []
-            # if tree[1,-1] == 'NN':
-            #     # single object
-            #     obj_l = tokens[get_abs_idx(tree,[1,0]):get_abs_idx(tree,[1,0])+len(tree[1])]
-            #     subtask = ' '.join(['pick', 'up'] + obj_l)
-            #     subtasks.append(subtask)
-            # elif tree[1,-1] == 'NNS':
-            #     # multiple objects
-            #     pass #TODO
+            
             subtasks += generate_pick_tasks(tree, 1)
-            # if tree[3,-1] == 'NN':
-            #     # single object
-            #     obj_l = tokens[get_abs_idx(tree,[3,0]):get_abs_idx(tree,[3,0])+len(tree[3])]
-            #     subtask = ' '.join(['pick', 'up'] + obj_l)
-            #     subtasks.append(subtask)
-            # elif tree[3,-1] == 'NNS':
-            #     # multiple objects
-            #     pass #TODO
             subtasks += generate_pick_tasks(tree, 3)
-            # loc_l = tokens[get_abs_idx(tree,[4,0]):get_abs_idx(tree,[4,0])+len(tree[4])]
-            # subtask = ' '.join(['place', 'it'] + loc_l)
-            # subtasks.append(subtask)
             place_subtasks = generate_place_tasks(tree, 4)*len(subtasks)
             # interleave
             subtasks = [val for pair in zip(subtasks, place_subtasks) for val in pair]
             print('generated subtasks:', subtasks)
             return subtasks
+
         elif len(tree) == 6:
             # V O CC V O L
             subtasks = []
-            # if tree[1,-1] == 'NN':
-            #     # single object
-            #     obj_l = tokens[get_abs_idx(tree,[1,0]):get_abs_idx(tree,[1,0])+len(tree[1])]
-            #     subtask = ' '.join(['pick', 'up'] + obj_l)
-            #     subtasks.append(subtask)
-            # elif tree[1,-1] == 'NNS':
-            #     # multiple objects
-            #     pass #TODO
+            
             subtasks += generate_pick_tasks(tree, 1)
-            # loc_l = tokens[get_abs_idx(tree,[5,0]):get_abs_idx(tree,[5,0])+len(tree[5])]
-            # subtask = ' '.join(['place', 'it'] + loc_l)
-            # subtasks.append(subtask)
             place_subtasks = generate_place_tasks(tree, 5)*len(subtasks)
             # interleave
             subtasks = [val for pair in zip(subtasks, place_subtasks) for val in pair]
             print('generated subtasks:', subtasks)
             return subtasks
+            
         elif len(tree) == 7:
             # V O CC O CC O L
             return [] # TODO

@@ -70,8 +70,8 @@ class Simulator(object):
         self.shape_size_replacement["LgVK8qXGowA_2.json"] = "fill a little into the big round bowl"
         self.shape_size_replacement["JZ90qm46ooP_2.json"] = "fill everything into the biggest rectangular bowl"
 
-        # self.subtasks = ['pick up the red cup','pour all of it into the yellow dish']
-        # self.subtask_idx = 0
+        self.subtasks = []
+        self.subtask_idx = 0
     
     def loadNlpCSV(self, path):
         self.nlp_dict = {}
@@ -743,8 +743,10 @@ class Simulator(object):
             self.last_gripper = 0.0
             self.node.get_logger().info("Resetting robot")
             self._resetEnvironment()
-            # self.subtasks = []
-            # self.subtask_idx = 0
+            self.subtasks = []
+            self.subtask_idx = 0
+        if d_in == 'd':
+            self.releaseRobotGrip()
         if d_in == 's':
             print('current state', self._getRobotState())
             q_prime = np.append(np.deg2rad(DEFAULT_UR5_JOINTS),[0.0])
@@ -796,10 +798,9 @@ class Simulator(object):
             # #     # self.pyrep.step()
         elif d_in.startswith("t "):
             # self.rm_voice = d_in[2:]
-            # self.subtasks = semantic_parser(d_in[2:])
-            # self.subtask_idx = 0
-            # self.rm_voice = self.subtasks[self.subtask_idx]
-            self.rm_voice = d_in[2:]
+            self.subtasks = semantic_parser(d_in[2:])
+            self.subtask_idx = 0
+            self.rm_voice = self.subtasks[self.subtask_idx]
             self.cnt      = 0
             print("Running Task: " + self.rm_voice)
         elif self.rm_voice != "" and  d_in == "":
@@ -823,34 +824,37 @@ class Simulator(object):
             #     self._releaseObject()
             #     phase = 0.95
 
-
-            if phase >=0.95:
+            if phase > 0.98:
                 self.node.get_logger().info("Finished running trajectory with " + str(self.cnt) + " steps")
                 # self._releaseObject()
                 self._stopRobotMovement()
-                self.rm_voice = ""
+                # self.rm_voice = ""
 
-                # self.subtask_idx += 1
-                # # if subtasks remain, keep going
-                # if len(self.subtasks) > self.subtask_idx:
-                #     print('moving onto next subtask')
-                #     self.rm_voice = self.subtasks[self.subtask_idx]
-                #     self.cnt = 0
-                #     print("Running Task: " + self.rm_voice)
-                # else:
-                #     if self.subtasks[-1].startswith('pour'):
-                #         self.resetRobotArm()
-                #     self.rm_voice = ""
-                #     self.subtasks = []
-                #     self.subtask_idx = 0
+                self.subtask_idx += 1
+                # if subtasks remain, keep going
+                if len(self.subtasks) > self.subtask_idx:
+                    print('moving onto next subtask')
+                    self.rm_voice = self.subtasks[self.subtask_idx]
+                    self.cnt = 0
+                    print("Running Task: " + self.rm_voice)
+                else:
+                    if self.subtasks[-1].startswith('pour'):
+                        self.resetRobotArm()
+                    self.rm_voice = ""
+                    self.subtasks = []
+                    self.subtask_idx = 0
 
 
         return True
     
+    def releaseRobotGrip(self):
+        self._releaseObject()
+        self.last_gripper = 0.0
+    
     def resetRobotArm(self):
         self._stopRobotMovement()
         self.rm_voice     = ""
-        self._releaseObject()
+        # self._releaseObject()
         q_prime = np.append(np.deg2rad(DEFAULT_UR5_JOINTS),[0.0])
         q = self._getRobotState()
         error = np.linalg.norm(q - q_prime)
