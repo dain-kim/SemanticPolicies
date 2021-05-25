@@ -39,6 +39,7 @@ NORM_PATH           = "../GDrive/normalization_v2.pkl"
 # Where to find the VRep scene file. This has to be an absolute path. 
 # VREP_SCENE          = "../GDrive/NeurIPS2020.ttt"
 VREP_SCENE          = "../GDrive/testscene.ttt"
+VREP_SCENE          = "../GDrive/testscene2.ttt"
 VREP_SCENE          = os.getcwd() + "/" + VREP_SCENE
 
 class Simulator(object):
@@ -686,6 +687,14 @@ class Simulator(object):
                     floats += [np.random.uniform(-math.pi/4.0,  math.pi/4.0)]
                 else:
                     floats += [0.0]
+
+            
+            # floats = [-0.6706283735164196, -0.367048866651563, 0.5677358902060654, -0.38444069922215474, -0.5240614358568401, 0.0, -0.005800754313754042, -0.5434291140615598, 0.0]
+            floats = [-0.4841615916276253, -0.3829838314703341, -0.05021171096973509, -0.7201993483166631, -0.12716774121561158, 0.0, -0.34769231510157994, -0.6539479616451864, 0.0]
+
+            
+            print(floats)        
+
 
         # Sim 3: several cups and one bin
         # "put all the red cups in the bin"

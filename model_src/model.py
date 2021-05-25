@@ -104,9 +104,12 @@ class PolicyTranslationModel(tf.keras.Model):
         #     batch_size = 2
         batch_size = tf.shape(atn)[0]
 
+        print(subtask_embedding[0])
         # generated, subtask_phase, weights, dmp_dt = self.call_controller(robot, batch_size, subtask_embedding, use_dropout, training)
         pt          = self.pt_global(subtask_embedding)
+        print(subtask_embedding[0])
         pt          = self.dout(pt, training=tf.convert_to_tensor(use_dropout))
+
         dmp_dt      = self.pt_dt_2(self.pt_dt_1(pt)) + 0.1 # 0.1 prevents division by 0, just in case
         # dmp_dt      = d_out[2]
 

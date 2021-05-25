@@ -205,7 +205,7 @@ class NetworkService():
             boxes    = image_features["detection_boxes"][0, :6, :].numpy().astype(dtype=np.float32)
             
             # detect_objects(model, image, tf.convert_to_tensor([image], dtype=tf.uint8), boxes, classes)
-            # show_bounding_boxes(image, boxes, classes, scores)
+            #show_bounding_boxes(image, boxes, classes, scores)
             # model.saveBoundingBoxInfo(image, image_features)
             
             self.features = np.concatenate((np.expand_dims(classes,1), boxes), axis=1)
@@ -215,8 +215,6 @@ class NetworkService():
         self.history.append(list(req.robot)) 
 
         robot           = np.asarray(self.history, dtype=np.float32)
-
-
         ### pseudocode
         # if first time calling the command,
         if self.first_call:
@@ -230,6 +228,7 @@ class NetworkService():
         # get the embedding of the current subtask
         try:
             task_embedding = self.subtask_embeddings[self.subtask_idx]
+            print('task embedding\n', task_embedding[0])
         except:
             print('You shouldn\'t be here')
             return
@@ -241,6 +240,7 @@ class NetworkService():
             tf.convert_to_tensor(np.tile([robot],[250, 1, 1]), dtype=tf.float32)
         )
         
+        print("Before the new call")
         s = time.time()
         generated, (atn, dmp_dt, phase, weights) = model.new_call(input_data, task_embedding, training=tf.constant(False), use_dropout=tf.constant(True))
 
@@ -252,7 +252,7 @@ class NetworkService():
         subtask_phase     = tf.math.reduce_mean(phase, axis=0).numpy()
         subtask_phase     = subtask_phase[-1,0]
         phase_value   = min((subtask_phase + self.subtask_idx) / (len(self.subtasks)), 1.)
-        print('subtask', self.subtask_idx, '\t', round(time.time() - s,3), 'seconds to run\tsubtask phase:', round(subtask_phase,3), '\tphase:', round(phase_value, 3))
+        print('subtask', self.subtask_idx, '\t', round(time.time() - s,3), 'seconds to run\tsubtask phase:', round(subtask_phase,3), '\t task phase:', round(phase_value, 3))
         self.subtask_steps[self.subtask_idx] += 1
 
         # determine if subtask is complete
@@ -267,6 +267,7 @@ class NetworkService():
             # move on to the next index
             print('moving onto the next subtask..')
             self.subtask_idx += 1
+            print(self.subtask_idx)
             self._next = True
             # reset variables
             # if no more subtask left:
@@ -347,9 +348,11 @@ class NetworkService():
             
             # task object selector
             a = tf.numpy_function(random_choose, [a], tf.float32)
+            print('a\n', a[0])
             a = tf.convert_to_tensor(a, dtype=tf.float32)
-            self.As.append(a)
 
+            self.As.append(a)
+    
             task_embedding = self.generate_task_embedding(a, features, sentence_embedding, robot)
             self.subtask_embeddings.append(task_embedding)
         
