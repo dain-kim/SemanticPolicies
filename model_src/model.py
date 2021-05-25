@@ -93,21 +93,47 @@ class PolicyTranslationModel(tf.keras.Model):
         return __dictionary
     
     @tf.function
-    def new_call(self, inputs, cur_subtask, subtask_embedding, training=False, use_dropout=True):
+    def new_call(self, inputs, subtask_embedding, training=False, use_dropout=True):
         # print('call running on graph mode? ', not tf.executing_eagerly())
+        atn        = inputs[0]
+        cfeatures  = inputs[1]
         robot      = inputs[2]
-        try:
-            batch_size = tf.shape(cur_subtask)[0]
-        except:
-            batch_size = 2
+        # try:
+        #     batch_size = tf.shape(atn)[0]
+        # except:
+        #     batch_size = 2
+        batch_size = tf.shape(atn)[0]
 
-        generated, subtask_phase, weights, dmp_dt = self.call_controller(robot, batch_size, subtask_embedding, use_dropout, training)
+        # generated, subtask_phase, weights, dmp_dt = self.call_controller(robot, batch_size, subtask_embedding, use_dropout, training)
+        pt          = self.pt_global(subtask_embedding)
+        pt          = self.dout(pt, training=tf.convert_to_tensor(use_dropout))
+        dmp_dt      = self.pt_dt_2(self.pt_dt_1(pt)) + 0.1 # 0.1 prevents division by 0, just in case
+        # dmp_dt      = d_out[2]
 
-        return generated, (self.subtask_attn, dmp_dt, subtask_phase, weights)
+        # Run the low-level controller
+        start_joints  = robot[:,0,:]
+        initial_state = [
+            start_joints,
+            tf.zeros(shape=[batch_size, self.units], dtype=tf.float32)
+        ]
+        generated, subtask_phase, weights = self.controller(inputs=robot, constants=(subtask_embedding, dmp_dt), initial_state=initial_state, training=training)
+
+        return generated, (atn, dmp_dt, subtask_phase, weights)
     
     @tf.function
     def call_controller(self, robot, batch_size, subtask_embedding, use_dropout, training):
-        dmp_dt, initial_state = self.prep_controller_call(robot, batch_size, subtask_embedding, use_dropout)
+        # dmp_dt, initial_state = self.prep_controller_call(robot, batch_size, subtask_embedding, use_dropout)
+        pt          = self.pt_global(subtask_embedding)
+        pt          = self.dout(pt, training=tf.convert_to_tensor(use_dropout))
+        dmp_dt      = self.pt_dt_2(self.pt_dt_1(pt)) + 0.1 # 0.1 prevents division by 0, just in case
+        # dmp_dt      = d_out[2]
+
+        # Run the low-level controller
+        start_joints  = robot[:,0,:]
+        initial_state = [
+            start_joints,
+            tf.zeros(shape=[batch_size, self.units], dtype=tf.float32)
+        ]
         generated, subtask_phase, weights = self.controller(inputs=robot, constants=(subtask_embedding, dmp_dt), initial_state=initial_state, training=training)
         return generated, subtask_phase, weights, dmp_dt
     
@@ -125,6 +151,13 @@ class PolicyTranslationModel(tf.keras.Model):
             tf.zeros(shape=[batch_size, self.units], dtype=tf.float32)
         ]
         return dmp_dt, initial_state
+    
+    @tf.function
+    def get_attention(self, cur_subtask, features, training=False):
+        # print('get attention running on graph mode? ', not tf.executing_eagerly())
+        sentence_embedding  = self.embedding(cur_subtask)
+        sentence_embedding  = self.lng_gru(inputs=sentence_embedding, training=training) 
+        return (sentence_embedding, self.attention((sentence_embedding, features)))
            
     @tf.function
     def call(self, inputs, batch_size=None, training=False, use_dropout=True):

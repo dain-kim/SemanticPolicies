@@ -163,11 +163,28 @@ class NetworkService():
 
         return res
 
+    def reset_state(self):
+        print('resetting service state')
+        self.first_call = True
+        self.subtasks = []  # this stores the nl subtask commands
+        self.tokenized_subtasks = []  # this stores the tokenized tensors of the nl subtask commands
+        self.subtask_embeddings = []  # this stores the task embeddings of the subtasks
+        self.As = []  # this stores the output of the attention network (atn)
+        self.subtask_steps = []  # this is for keeping track of how long each subtask took
+        self.subtask_idx = 0
+        self.cur_subtask = None
+        self.subtask_attn = None
+        self.subtask_embedding = None
+        self.phase = 0.0
+        # self.flipped = False
+        # self.batch_size = None
+
     def cbk_network_dmp(self, req):
         if req.reset:
             self.req_step = 0
             self.sfp_history = []
-            self.first_call = True
+            # self.first_call = True
+            self.reset_state()
             try:
                 image = self.imgmsg_to_cv2(req.image)
             except CvBridgeError as e:
@@ -177,7 +194,6 @@ class NetworkService():
             # self.language = language + [0] * (15-len(language))
 
             image_features = model.frcnn(tf.convert_to_tensor([image], dtype=tf.uint8))
-            # print('type',image_features)
 
             scores   = image_features["detection_scores"][0, :6].numpy().astype(dtype=np.float32)
             scores   = [0.0 if v < 0.5 else 1.0 for v in scores.tolist()]
@@ -193,49 +209,61 @@ class NetworkService():
             
             self.features = np.concatenate((np.expand_dims(classes,1), boxes), axis=1)
 
-            self.history  = []        
+            self.history  = []
 
         self.history.append(list(req.robot)) 
 
         robot           = np.asarray(self.history, dtype=np.float32)
-        self.input_data = (
+
+
+        ### pseudocode
+        # if first time calling the command,
+        if self.first_call:
+            # generate subtasks and embeddings and save it to self.subtasks etc.
+            self.generate_subtasks(req.language, 
+                                   tf.convert_to_tensor(np.tile([self.features],[250, 1, 1]), dtype=tf.float32), 
+                                   tf.convert_to_tensor(np.tile([robot],[250, 1, 1]), dtype=tf.float32), 
+                                   training=tf.constant(False))
+            self.subtask_steps = [0] * len(self.subtasks)
+            self.first_call = False
+        # get the embedding of the current subtask
+        try:
+            task_embedding = self.subtask_embeddings[self.subtask_idx]
+        except:
+            print('You shouldn\'t be here')
+            return
+        # call the model with the current embedding
+        input_data = (
             # tf.convert_to_tensor(np.tile([self.language],[250, 1]), dtype=tf.int64), ## Original language input in tensor form
-            req.language,
+            self.As[self.subtask_idx],
             tf.convert_to_tensor(np.tile([self.features],[250, 1, 1]), dtype=tf.float32),
             tf.convert_to_tensor(np.tile([robot],[250, 1, 1]), dtype=tf.float32)
         )
-
-        if self.first_call:
-            self.prep(self.input_data, training=tf.constant(False))
-            self.first_call = False
-        
         s = time.time()
-        generated, (atn, dmp_dt, phase, weights) = model.new_call(self.input_data, self.cur_subtask, self.subtask_embedding, training=tf.constant(False), use_dropout=tf.constant(True))
-        print('model took', round(time.time() - s,2), 'seconds to run')
-        
+        generated, (atn, dmp_dt, phase, weights) = model.new_call(input_data, task_embedding, training=tf.constant(False), use_dropout=tf.constant(True))
+
         self.trj_gen    = tf.math.reduce_mean(generated, axis=0).numpy()
         self.trj_std    = tf.math.reduce_std(generated, axis=0).numpy()
         self.timesteps  = int(tf.math.reduce_mean(dmp_dt).numpy() * 500)
         self.b_weights  = tf.math.reduce_mean(weights, axis=0).numpy()
 
-        phase_value     = tf.math.reduce_mean(phase, axis=0).numpy()
-        phase_value     = phase_value[-1,0]
-        # phase_value = phase
+        subtask_phase     = tf.math.reduce_mean(phase, axis=0).numpy()
+        subtask_phase     = subtask_phase[-1,0]
+        phase_value   = min((subtask_phase + self.subtask_idx) / (len(self.subtasks) + 0.01), 1.)
+        print('subtask', self.subtask_idx, '\t', round(time.time() - s,3), 'seconds to run\tphase:', phase_value, subtask_phase)
+        self.subtask_steps[self.subtask_idx] += 1
 
-        self.sfp_history.append(self.b_weights[-1,:,:])
-        if phase_value > 0.94 and not self.flipped:
-            print('old subtask idx', self.subtask_idx)
-            print('moving onto next subtask..')
+        # determine if subtask is complete
+        # if subtask is complete:
+        if subtask_phase > 0.95 and self.subtask_steps[self.subtask_idx] > 100:
+            # move on to the next index
+            print('moving onto the next subtask..')
             self.subtask_idx += 1
-            self.cur_subtask = None
-            self.subtask_attn = None
-            self.subtask_embedding = None
-            self.flipped = True
-            print('new subtask idx:', self.subtask_idx)
-            print(len(self.subtasks), 'subtasks')
+            # reset variables
+            # if no more subtask left:
             if self.subtask_idx >= len(self.subtasks):
+                # reset all variables
                 print('-----DONE WITH ALL SUBTASKS-----')
-        # if phase_value > 0.95 and len(self.sfp_history) > 100:
                 trj_len    = len(self.sfp_history)
                 basismodel = GaussianModel(degree=11, scale=0.012, observed_dof_names=("Base","Shoulder","Ellbow","Wrist1","Wrist2","Wrist3","Gripper"))
                 domain     = np.linspace(0, 1, trj_len, dtype=np.float64)
@@ -255,14 +283,78 @@ class NetworkService():
 
                 self.sfp_history = []
                 self.reset_state()
-            else:
-                self.prep(self.input_data, training=tf.constant(False))
-        elif phase_value <= 0.94:
-            self.flipped = False
-
         
         self.req_step += 1
         return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), float(phase_value)) 
+    
+        ###############################
+
+
+        # self.input_data = (
+        #     # tf.convert_to_tensor(np.tile([self.language],[250, 1]), dtype=tf.int64), ## Original language input in tensor form
+        #     req.language,
+        #     tf.convert_to_tensor(np.tile([self.features],[250, 1, 1]), dtype=tf.float32),
+        #     tf.convert_to_tensor(np.tile([robot],[250, 1, 1]), dtype=tf.float32)
+        # )
+
+        # if self.first_call:
+        #     self.prep(self.input_data, training=tf.constant(False))
+        #     self.first_call = False
+        
+        # s = time.time()
+        # generated, (atn, dmp_dt, phase, weights) = model.new_call(self.input_data, self.cur_subtask, self.subtask_embedding, training=tf.constant(False), use_dropout=tf.constant(True))
+        # print('model took', round(time.time() - s,2), 'seconds to run')
+        
+        # self.trj_gen    = tf.math.reduce_mean(generated, axis=0).numpy()
+        # self.trj_std    = tf.math.reduce_std(generated, axis=0).numpy()
+        # self.timesteps  = int(tf.math.reduce_mean(dmp_dt).numpy() * 500)
+        # self.b_weights  = tf.math.reduce_mean(weights, axis=0).numpy()
+
+        # phase_value     = tf.math.reduce_mean(phase, axis=0).numpy()
+        # phase_value     = phase_value[-1,0]
+        # # phase_value = phase
+
+        # self.sfp_history.append(self.b_weights[-1,:,:])
+        # if phase_value > 0.94:
+        #     print('old subtask idx', self.subtask_idx)
+        #     print('moving onto next subtask..')
+        #     self.subtask_idx += 1
+        #     self.cur_subtask = None
+        #     self.subtask_attn = None
+        #     self.subtask_embedding = None
+        #     # self.flipped = True
+        #     print('new subtask idx:', self.subtask_idx)
+        #     print(len(self.subtasks), 'subtasks')
+        #     if self.subtask_idx >= len(self.subtasks):
+        #         print('-----DONE WITH ALL SUBTASKS-----')
+        # # if phase_value > 0.95 and len(self.sfp_history) > 100:
+        #         trj_len    = len(self.sfp_history)
+        #         basismodel = GaussianModel(degree=11, scale=0.012, observed_dof_names=("Base","Shoulder","Ellbow","Wrist1","Wrist2","Wrist3","Gripper"))
+        #         domain     = np.linspace(0, 1, trj_len, dtype=np.float64)
+        #         trajectories = []
+        #         for i in range(trj_len):
+        #             trajectories.append(np.asarray(basismodel.apply_coefficients(domain, self.sfp_history[i].flatten())))
+        #         trajectories = np.asarray(trajectories)
+        #         np.save("trajectories", trajectories)
+        #         np.save("history", self.history)
+
+        #         gen_trajectory = []
+        #         var_trj        = np.zeros((trj_len, trj_len, 7), dtype=np.float32)
+        #         for w in range(trj_len):
+        #             gen_trajectory.append(trajectories[w,w,:])
+        #         gen_trajectory = np.asarray(gen_trajectory)
+        #         np.save("gen_trajectory", gen_trajectory)            
+
+        #         self.sfp_history = []
+        #         self.reset_state()
+        #     else:
+        #         self.prep(self.input_data, training=tf.constant(False))
+        # # elif phase_value <= 0.94:
+        # #     self.flipped = False
+
+        
+        # self.req_step += 1
+        # return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), float(phase_value)) 
     
     def idToText(self, id):
         names = ["", "Yellow Small Round", "Red Small Round", "Green Small Round", "Blue Small Round", "Pink Small Round",
@@ -303,6 +395,52 @@ class NetworkService():
         fig = plt.figure()
         plt.imshow(image_np)
     
+    def generate_subtasks(self, language, features, robot, training):
+        print('generating subtasks')
+        self.subtasks = semantic_parser(language)
+        for subtask in self.subtasks:
+            tokenized = self.tokenize_subtask(subtask)
+            self.tokenized_subtasks.append(tokenized)
+            sentence_embedding, a = model.get_attention(tokenized, features, training=training)
+            
+            # task object selector
+            a = tf.numpy_function(random_choose, [a], tf.float32)
+            a = tf.convert_to_tensor(a, dtype=tf.float32)
+            self.As.append(a)
+
+            task_embedding = self.generate_task_embedding(a, features, sentence_embedding, robot)
+            self.subtask_embeddings.append(task_embedding)
+        
+
+
+
+    def tokenize_subtask(self, subtask):
+        voice  = self.regex.sub("", subtask.strip().lower())
+        tokens = []
+        for w in voice.split(" "):
+            idx = 0
+            try:
+                idx = self.dictionary[w]
+            except:
+                print("Unknown word: " + w)
+            tokens.append(idx)
+        
+        tokens = tokens + [0] * (15-len(tokens))
+        tokens = tf.convert_to_tensor(np.tile([tokens],[250, 1]), dtype=tf.int64)
+        return tokens
+    
+    def generate_task_embedding(self, a, features, sentence_embedding, robot):
+        atn_w = tf.expand_dims(a, 2)
+        atn_w = tf.tile(atn_w, [1, 1, 5])
+        # Compress image features and apply attention
+        cfeatures = tf.math.multiply(atn_w, features)
+        cfeatures = tf.math.reduce_sum(cfeatures, axis=1)
+        # Add the language to the mix again. Possibly usefull to predict dt
+        start_joints  = robot[:,0,:]
+        cfeatures = tf.keras.backend.concatenate((cfeatures, sentence_embedding, start_joints), axis=1)
+        # Save subtask embedding
+        return cfeatures
+    
     def prep(self, inputs, training=False, use_dropout=True):
         print('---SERVICE PREP---')
         s = time.time()
@@ -333,11 +471,11 @@ class NetworkService():
 
         if self.subtask_embedding is None:
             print(' embedding subtask')
-            instruction  = model.embedding(self.cur_subtask)
-            instruction  = model.lng_gru(inputs=instruction, training=training) 
+            # instruction  = model.embedding(self.cur_subtask)
+            # instruction  = model.lng_gru(inputs=instruction, training=training) 
 
             # Calculate attention for current subtask
-            a = model.attention((instruction, features))
+            instruction, a = model.get_attention(self.cur_subtask, features, training=training)
             def random_choose(a, thresh=0.9):
                 sig = tf.nn.sigmoid(a)
                 # randomly chooses the column index where sigmoid value >= thresh
@@ -368,17 +506,19 @@ class NetworkService():
         cfeatures = tf.keras.backend.concatenate((cfeatures, instruction, start_joints), axis=1)
         # Save subtask embedding
         self.subtask_embedding = cfeatures
-    
-    def reset_state(self):
-        self.first_call = True
-        self.subtasks = []
-        self.subtask_idx = 0
-        self.cur_subtask = None
-        self.subtask_attn = None
-        self.subtask_embedding = None
-        self.phase = 0.0
-        self.flipped = False
-        # self.batch_size = None
+
+def random_choose(a, thresh=0.9):
+    sig = tf.nn.sigmoid(a)
+    # randomly chooses the column index where sigmoid value >= thresh
+    try:
+        idx = np.random.choice(np.where(sig[0]>=thresh)[0])
+    except:
+        idx = 0
+    # print('Mask options:',sig[0])
+    z = np.zeros((a.shape[1]), dtype="float32")
+    z[idx] = 1
+    mask = np.tile(z, (a.shape[0],1))
+    return mask
     
 if __name__ == "__main__":
     ot = NetworkService()

@@ -70,8 +70,8 @@ class Simulator(object):
         self.shape_size_replacement["LgVK8qXGowA_2.json"] = "fill a little into the big round bowl"
         self.shape_size_replacement["JZ90qm46ooP_2.json"] = "fill everything into the biggest rectangular bowl"
 
-        self.subtasks = ['pick up the red cup','pour all of it into the yellow dish']
-        self.subtask_idx = 0
+        # self.subtasks = ['pick up the red cup','pour all of it into the yellow dish']
+        # self.subtask_idx = 0
     
     def loadNlpCSV(self, path):
         self.nlp_dict = {}
@@ -743,8 +743,8 @@ class Simulator(object):
             self.last_gripper = 0.0
             self.node.get_logger().info("Resetting robot")
             self._resetEnvironment()
-            self.subtasks = []
-            self.subtask_idx = 0
+            # self.subtasks = []
+            # self.subtask_idx = 0
         if d_in == 's':
             print('current state', self._getRobotState())
             q_prime = np.append(np.deg2rad(DEFAULT_UR5_JOINTS),[0.0])

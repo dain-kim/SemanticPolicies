@@ -136,6 +136,8 @@ def semantic_parser(sentence):
     trees = get_trees(tags)
     if len(trees) > 1:
         print('WARNING: more than one tree generated')
+    if len(trees)  == 0:
+        print('WARNING: parser could not understand input')
 
     for tree in trees:
         tree.pretty_print()
