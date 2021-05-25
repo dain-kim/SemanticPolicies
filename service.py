@@ -253,6 +253,8 @@ class NetworkService():
                 # self.first_call = True
                 # model.reset_state()
                 self.reset_state()
+            else:
+                self.prep(self.input_data, training=tf.constant(False))
 
         
         self.req_step += 1
@@ -310,7 +312,6 @@ class NetworkService():
 
         if self.subtasks == []: #S_0
             subtasks = semantic_parser(language)
-            print('generated subtasks: ',subtasks)
             self.subtasks = subtasks
             # catch case where command is malformed / no subtasks are generated from command
             if self.subtasks == []:
@@ -320,22 +321,9 @@ class NetworkService():
         # Call word embedding only once at the beginning for efficiency
         if self.cur_subtask is None:
             cur_subtask = self.subtasks[self.subtask_idx]
-            # print('current subtask:',cur_subtask)
-            # From service.py: convert to GloVe word embeddings
             cur_subtask = self.tokenize(cur_subtask)
             cur_subtask = cur_subtask + [0] * (15-len(cur_subtask))
             self.cur_subtask = tf.convert_to_tensor(np.tile([cur_subtask],[250, 1]), dtype=tf.int64)
-        
-        # input_data = (
-        #     self.cur_subtask,
-        #     features,
-        #     robot
-        # )
-        # return self.old_call(input_data, training=training, use_dropout=use_dropout)
-        try:
-            self.batch_size = tf.shape(self.cur_subtask)[0]
-        except:
-            self.batch_size = 250
 
         if self.subtask_embedding is None:
             instruction  = model.embedding(self.cur_subtask)
@@ -358,16 +346,6 @@ class NetworkService():
             self.subtask_attn = tf.numpy_function(random_choose, [a], tf.float32)
             self.subtask_attn = tf.convert_to_tensor(self.subtask_attn, dtype=tf.float32)
 
-            # atn_w = tf.expand_dims(self.subtask_attn, 2)
-            # atn_w = tf.tile(atn_w, [1, 1, 5])
-            # # Compress image features and apply attention
-            # cfeatures = tf.math.multiply(atn_w, features)
-            # cfeatures = tf.math.reduce_sum(cfeatures, axis=1)
-            # # Add the language to the mix again. Possibly usefull to predict dt
-            # start_joints  = robot[:,0,:]
-            # cfeatures = tf.keras.backend.concatenate((cfeatures, instruction, start_joints), axis=1)
-            # # Save subtask embedding
-            # self.subtask_embedding = cfeatures
             self.generate_subtask_embedding(instruction, features, robot)
             print('prep:',round(time.time()-s, 3),'seconds')
     
@@ -392,7 +370,7 @@ class NetworkService():
         self.subtask_attn = None
         self.subtask_embedding = None
         self.phase = 0.0
-        self.batch_size = None
+        # self.batch_size = None
     
 if __name__ == "__main__":
     ot = NetworkService()
