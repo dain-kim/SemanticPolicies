@@ -688,8 +688,8 @@ class Simulator(object):
                 else:
                     floats += [0.0]
 
-            # floats = [-0.6706283735164196, -0.367048866651563, 0.5677358902060654, -0.38444069922215474, -0.5240614358568401, 0.0, -0.005800754313754042, -0.5434291140615598, 0.0]
-            floats = [-0.4841615916276253, -0.3829838314703341, -0.05021171096973509, -0.7201993483166631, -0.12716774121561158, 0.0, -0.34769231510157994, -0.6539479616451864, 0.0]
+            floats = [-0.6706283735164196, -0.367048866651563, 0.5677358902060654, -0.38444069922215474, -0.5240614358568401, 0.0, -0.005800754313754042, -0.5434291140615598, 0.0]
+            # floats = [-0.4841615916276253, -0.3829838314703341, -0.05021171096973509, -0.7201993483166631, -0.12716774121561158, 0.0, -0.34769231510157994, -0.6539479616451864, 0.0]
 
 
         # Sim 2: two cups with same colors and one bin
@@ -779,47 +779,6 @@ class Simulator(object):
             print('error: ',error)
         if d_in == 'z':
             self.resetRobotArm()
-            # self._stopRobotMovement()
-            # self.rm_voice     = ""
-            # self._releaseObject()
-            # # self._setRobotJoints(np.deg2rad(DEFAULT_UR5_JOINTS))
-            # # print(self._getRobotState())
-            # # print(np.append(np.deg2rad(DEFAULT_UR5_JOINTS),[0.0]))
-            # # k = 1
-            # # delta_t = 0.05
-            # q_prime = np.append(np.deg2rad(DEFAULT_UR5_JOINTS),[0.0])
-            # q = self._getRobotState()
-            # error = np.linalg.norm(q - q_prime)
-            # while error > 0.001:
-            #     self._setJointVelocityFromTarget(q_prime)
-            #     self.pyrep.step()
-            #     q = self._getRobotState()
-            #     error = np.linalg.norm(q - q_prime)
-            # # q_dot = k * (q - q_prime)
-            # # q_des = q + q_dot * delta_t
-            # # # q_des = np.zeros(7)
-            # # print('q', q)
-            # # print('q prime', q_prime)
-            # # # print('qdot', q_dot)
-            # # # print('qdes', q_des)
-            # # self._setJointVelocityFromTarget(q_prime)
-            # # # self._setRobotJoints(q_des)
-            # # self.pyrep.step()
-            # self._stopRobotMovement()
-            # print('done')
-            # # while (np.linalg.norm(self._getRobotState()-q_prime) > 0.2):
-            # #     print(np.linalg.norm(self._getRobotState()-q_prime))
-            # #     q = self._getRobotState()
-            # #     q_prime = np.append(np.deg2rad(DEFAULT_UR5_JOINTS),[0.0])
-            # #     q_dot = k * (q - q_prime)
-            # #     q_des = q + q_dot * delta_t
-            # #     # q_des = np.zeros(7)
-            # #     self._setJointVelocityFromTarget(q_des)
-            # #     # self._setRobotJoints(q_des)
-            # #     print('q', q)
-            # #     print('qdot', q_dot)
-            # #     print('qdes', q_des)
-            # #     # self.pyrep.step()
         elif d_in.startswith("t "):
             # self.rm_voice = d_in[2:]
             self.subtasks = semantic_parser(d_in[2:])
@@ -848,11 +807,12 @@ class Simulator(object):
             #     self._releaseObject()
             #     phase = 0.95
 
-            if phase > 0.95:
+            if phase > 0.98:
                 self.node.get_logger().info("Finished running trajectory with " + str(self.cnt) + " steps")
                 # self._releaseObject()
                 if 'pour' in self.subtasks[self.subtask_idx]:
                     self._releaseObject()
+                    self.resetRobotArm()
                 self._stopRobotMovement()
                 # self.rm_voice = ""
 
