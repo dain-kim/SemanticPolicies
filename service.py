@@ -225,6 +225,7 @@ class NetworkService():
                                    training=tf.constant(False))
             self.subtask_steps = [0] * len(self.subtasks)
             self.first_call = False
+            phase_value = 1
         # get the embedding of the current subtask
         try:
             task_embedding = self.subtask_embeddings[self.subtask_idx]            
@@ -254,9 +255,15 @@ class NetworkService():
 
         subtask_phase     = tf.math.reduce_mean(phase, axis=0).numpy()
         subtask_phase     = subtask_phase[-1,0]
-        phase_value   = min((subtask_phase + self.subtask_idx) / (len(self.subtasks)), 1.)
+        phase_value       = min((subtask_phase + self.subtask_idx) / (len(self.subtasks)), 1.)
         print('subtask', self.subtask_idx, '\t', round(time.time() - s,3), 'seconds to run\tsubtask phase:', round(subtask_phase,3), '\t task phase:', round(phase_value, 3))
         self.subtask_steps[self.subtask_idx] += 1
+
+        if 'pour' in self.subtasks[self.subtask_idx] and subtask_phase > 0.29:
+            phase_value = 1
+            subtask_phase = 1
+            self.subtask_steps[self.subtask_idx] = 101
+            print("Forcing pouring rotation to stop")            
 
         # determine if subtask is complete
         # if subtask is complete:
