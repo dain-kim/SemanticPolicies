@@ -31,16 +31,17 @@ HEADLESS            = False
 USE_SHAPE_SIZE      = True
 # Run on the test data, or start the simulator in manual mode 
 # (manual mode will allow you to generate environments and type in your own commands)
-RUN_ON_TEST_DATA    = False
+RUN_ON_TEST_DATA    = True
 # How many of the 100 test-data do you want to test?
-NUM_TESTED_DATA     = 100
+# NUM_TESTED_DATA     = 10
 # Where to find the normailization?
 NORM_PATH           = "../GDrive/normalization_v2.pkl"
 # Where to find the VRep scene file. This has to be an absolute path. 
 # VREP_SCENE          = "../GDrive/NeurIPS2020.ttt"
-VREP_SCENE          = "../GDrive/testscene.ttt"
+# VREP_SCENE          = "../GDrive/testscene.ttt"
 VREP_SCENE          = "../GDrive/testscene2.ttt"
 VREP_SCENE          = os.getcwd() + "/" + VREP_SCENE
+CUP_ID_TO_NAME      = {21: 'red cup', 22: 'green cup', 23: 'blue cup', 0: 'NONE'}
 
 class Simulator(object):
     def __init__(self, args=None):
@@ -141,9 +142,10 @@ class Simulator(object):
         i, _, _, _ = self.pyrep.script_call(function_name_at_script_name="graspedObject@control_script",
                                         script_handle_or_type=1,
                                         ints=(), floats=(), strings=(), bytes="")
-        if i[0] >= 0:
-            return True
-        return False
+        # if i[0] >= 0:
+        #     return True
+        # return False
+        return i
     
     def _setRobotInitial(self, joints):
         _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="setRobotJoints@control_script",
@@ -222,7 +224,10 @@ class Simulator(object):
         image        = self._getCameraImage()
 
         robot_state    = state
-        robot_state[6] = self.last_gripper
+        try:
+            robot_state[6] = self.last_gripper
+        except:
+            robot_state[6] = 0.0
 
         req          = NetworkPT.Request()
         req.image    = self.cv2_to_imgmsg(image[:,:,::-1])
@@ -272,79 +277,32 @@ class Simulator(object):
         return voice
 
     def _mapObjectIDs(self, oid):
-        if oid == 113:
-            return 1
-        elif oid == 114:
-            return 2
-        elif oid == 115:
-            return 3
-        elif oid == 116:
-            return 4
-        elif oid == 117:
-            return 5
-
-        elif oid == 119:
-            return 1
-        elif oid == 120:
-            return 2
-        elif oid == 121:
-            return 3
-        elif oid == 129:
-            return 4
-        elif oid == 130:
-            return 5
-        elif oid == 131:
-            return 6
+        if oid == 127: # red cup
+            return 21
+        elif oid == 128: # red cup
+            return 21
+        elif oid == 129: # green cup
+            return 22
+        elif oid == 130: # green cup
+            return 22
+        elif oid == 126: # blue cup
+            return 23
+        elif oid == 131: # blue cup
+            return 23
+        elif oid == -1: # nothing is grabbed
+            return 0
         
-        # if oid == 154:
-        #     return 1
-        # elif oid == 155:
-        #     return 2
-        # elif oid == 156:
-        #     return 3
-        # elif oid == 113:
-        #     return 1
-        # elif oid == 118:
-        #     return 2
-        # elif oid == 124:
-        #     return 3
-        # elif oid == 130:
-        #     return 4
-        # elif oid == 136:
-        #     return 5
-        # elif oid == 115:
-        #     return 6
-        # elif oid == 119:
-        #     return 7
-        # elif oid == 125:
-        #     return 8
-        # elif oid == 131:
-        #     return 9
-        # elif oid == 137:
-        #     return 10
-        # elif oid == 148:
-        #     return 11
-        # elif oid == 147:
-        #     return 12
-        # elif oid == 146:
-        #     return 13
-        # elif oid == 145:
-        #     return 14
-        # elif oid == 143:
-        #     return 15
-        # elif oid == 152:
-        #     return 16
-        # elif oid == 151:
-        #     return 17
-        # elif oid == 150:
-        #     return 18
-        # elif oid == 149:
-        #     return 19
-        # elif oid == 144:
-        #     return 20
-        # else:
-        #     print('unidentified object in mapOIDs')
-        #     print(oid)
+        else:
+            print('unidentified object in mapOIDs')
+            print(oid)
+            return 0
+    
+    def _correctGrab(self, command, grabbed_obj):
+        if 'cup' not in command:
+            return False
+        if grabbed_obj == 'NONE':
+            return False
+        return grabbed_obj in command or not any([i in command for i in ['red','green','blue']])
 
     def _getTargetPosition(self, data):
         state  = self._getSimulatorState()
@@ -435,6 +393,98 @@ class Simulator(object):
         data["features"] = _difficulty(voice)
         data["quantity"] = _quantity(voice)
         return data
+    
+    def valSorting(self, files, feedback=True):
+        successful = 0
+        val_data    = {}
+        nn_trajectory  = []
+        ro_trajectory  = []
+        for fid, fn in enumerate(files):
+            print("Sorting Run {}/{}".format(fid, len(files)))
+            eval_data = {}
+            with open(fn, "r") as fh:
+                data = json.load(fh)
+
+            # initial env setup
+            gt_trajectory = np.asarray(data["trajectory"])
+            self._resetEnvironment()
+            self._createEnvironment(data["ints"], data["floats"])
+            self._setRobotInitial(gt_trajectory[0,:])
+            self.pyrep.step()
+
+            eval_data["language"] = self._getLanguateInformation(data["voice"], 1)
+            eval_data["trajectory"] = {"gt": [], "state": []}
+            eval_data["trajectory"]["gt"] = gt_trajectory.tolist()
+
+            _, _, features = self.predictTrajectory("", self._getRobotState(), 1)
+            subtasks = semantic_parser(data["voice"], features)
+            subtask_idx = 0
+            rm_voice = subtasks[subtask_idx]
+
+            cnt   = 0
+            phase = 0.0
+            self.last_gripper = 0.0
+            th = 1.0
+            # while phase < th and cnt < int(gt_trajectory.shape[0] * 1.5):
+            while phase < th:
+                # state = self._getRobotState() if feedback else gt_trajectory[-1 if cnt >= gt_trajectory.shape[0] else cnt,:]
+                state = self._getRobotState()
+                cnt += 1
+                tf_trajectory, phase, features = self.predictTrajectory(rm_voice, state, cnt)
+                r_state    = tf_trajectory[-1,:]
+                eval_data["trajectory"]["state"].append(r_state.tolist())
+                r_state[6] = r_state[6]
+                nn_trajectory.append(r_state)
+                ro_trajectory.append(self._getRobotState())
+                self.last_gripper = r_state[6]
+                self._setJointVelocityFromTarget(r_state)
+                self.pyrep.step()
+                
+                # if r_state[6] > 0.5 and "locations" not in eval_data.keys():
+                #     eval_data["locations"] = self._getTargetPosition(data)
+                
+                if phase > 0.95:
+                    # check if robot grabbed the correct cup
+                    grasped_obj = self._graspedObject()[0]
+                    if grasped_obj > 0:
+                        grabbed_cup = CUP_ID_TO_NAME[self._mapObjectIDs(grasped_obj)]
+                        print('subtask was',rm_voice)
+                        print('robot grabbed', grabbed_cup)
+                        if self._correctGrab(rm_voice, grabbed_cup):
+                            print('successfully grabbed the right cup')
+                            successful += 1
+                
+                    if 'pour' in subtasks[subtask_idx]:
+                        self._releaseObject()
+                        self.resetRobotArm()
+                    self._stopRobotMovement()
+
+                    subtask_idx += 1
+                    # if subtasks remain, keep going
+                    if len(subtasks) > subtask_idx:
+                        # print('moving onto next subtask')
+                        rm_voice = subtasks[subtask_idx]
+                        cnt = 0
+                        phase = 0.0
+                        print("Running Task: " + rm_voice)
+                    else:
+                        # if self.subtasks[-1].startswith('pour'):
+                        #     self.resetRobotArm()
+                        rm_voice = ""
+                        subtasks = []
+                        subtask_idx = 0
+                        phase = 1.0
+
+            # eval_data["success"] = False
+            # grasped_obj = self._graspedObject()
+            # print('grasped obj', grasped_obj)
+            # if grasped_obj:
+            #     eval_data["success"] = True
+            #     successful += 1
+            val_data[data["name"]] = eval_data
+            eval_data["grab_success_rate"] = 0. # TODO update this
+            
+        return successful, val_data
 
     def valPhase1(self, files, feedback=True):
         successfull = 0
@@ -464,7 +514,7 @@ class Simulator(object):
             while phase < th and cnt < int(gt_trajectory.shape[0] * 1.5):
                 state = self._getRobotState() if feedback else gt_trajectory[-1 if cnt >= gt_trajectory.shape[0] else cnt,:]
                 cnt += 1
-                tf_trajectory, phase, _ = self.predictTrajectory(data["voice"], state, cnt)
+                tf_trajectory, phase, features = self.predictTrajectory(data["voice"], state, cnt)
                 r_state    = tf_trajectory[-1,:]
                 eval_data["trajectory"]["state"].append(r_state.tolist())
                 r_state[6] = r_state[6] 
@@ -544,28 +594,58 @@ class Simulator(object):
             
         return successfull, val_data
 
-    def evalDirect(self, runs):
-        files = glob.glob("../GDrive/testdata/*_1.json")
+    # def evalDirect(self, runs):
+    #     files = glob.glob("../GDrive/dain/testdata/*_1.json")
+    #     self.node.get_logger().info("Using data directory with {} files".format(len(files)))
+    #     files = files[:runs]
+    #     files = [f[:-6] for f in files]
+    #     self.node.get_logger().info("Running validation on {} files".format(len(files)))
+
+    #     data = {}
+    #     s_p1, e_data        = self.valPhase1(files)
+    #     data["phase_1"]     = e_data
+    #     s_p2, e_data        = self.valPhase2(files)
+    #     data["phase_2"]     = e_data
+
+    #     self.node.get_logger().info("Testing Sorting: {}/{} ({:.1f}%)".format(s_p1,  runs, 100.0 * float(s_p1)/float(runs)))
+    #     self.node.get_logger().info("Testing Kitting: {}/{} ({:.1f}%)".format(s_p2,  runs, 100.0 * float(s_p2)/float(runs)))
+
+    #     p1_names = data["phase_1"].keys()
+    #     p2_names = data["phase_2"].keys()
+    #     names = [n for n in p1_names if n in p2_names]
+    #     c_p2  = 0
+    #     for n in names:
+    #         if data["phase_1"][n]["success"] and data["phase_2"][n]["success"]:
+    #             c_p2  += 1
+
+    #     self.node.get_logger().info("Whole Task: {}/{} ({:.1f}%)".format(c_p2,  len(names), 100.0 * float(c_p2)  / float(len(names))))
+
+    #     with open("val_result.json", "w") as fh:
+    #         json.dump(data, fh)
+    def evalDirect(self):
+        # files = glob.glob("../GDrive/dain/testdata/*_1.json")
+        files = [f"kit_{i}.json" for i in range(1,11)]
         self.node.get_logger().info("Using data directory with {} files".format(len(files)))
-        files = files[:runs]
-        files = [f[:-6] for f in files]
+        # files = files[:runs]
+        # files = [f[:-6] for f in files]
         self.node.get_logger().info("Running validation on {} files".format(len(files)))
 
         data = {}
-        s_p1, e_data        = self.valPhase1(files)
+        s_p1, e_data        = self.valSorting(files)
         data["phase_1"]     = e_data
-        s_p2, e_data        = self.valPhase2(files)
-        data["phase_2"]     = e_data
+        # s_p2, e_data        = self.valPhase2(files)
+        # data["phase_2"]     = e_data
 
-        self.node.get_logger().info("Testing Picking: {}/{} ({:.1f}%)".format(s_p1,  runs, 100.0 * float(s_p1)/float(runs)))
-        self.node.get_logger().info("Testing Pouring: {}/{} ({:.1f}%)".format(s_p2,  runs, 100.0 * float(s_p2)/float(runs)))
+        self.node.get_logger().info("Testing Sorting: {}/{} ({:.1f}%)".format(s_p1,  runs, 100.0 * float(s_p1)/float(runs)))
+        # self.node.get_logger().info("Testing Kitting: {}/{} ({:.1f}%)".format(s_p2,  runs, 100.0 * float(s_p2)/float(runs)))
 
         p1_names = data["phase_1"].keys()
-        p2_names = data["phase_2"].keys()
-        names = [n for n in p1_names if n in p2_names]
+        # p2_names = data["phase_2"].keys()
+        # names = [n for n in p1_names if n in p2_names]
+        names = [n for n in p1_names]
         c_p2  = 0
         for n in names:
-            if data["phase_1"][n]["success"] and data["phase_2"][n]["success"]:
+            if data["phase_1"][n]["success"]:
                 c_p2  += 1
 
         self.node.get_logger().info("Whole Task: {}/{} ({:.1f}%)".format(c_p2,  len(names), 100.0 * float(c_p2)  / float(len(names))))
@@ -617,8 +697,10 @@ class Simulator(object):
 
         self._createEnvironment(ints, floats)
         self.node.get_logger().info("Created new environment")
-        print(ints)
-        print(floats)
+        print('ints',ints)
+        print('floats',floats)
+        print('rstate', self._getRobotState())
+        print('sim state', self._getSimulatorState())
         return ints, floats
     
     def _generateSetEnvironment(self, idx):
@@ -799,6 +881,7 @@ class Simulator(object):
             # hack: no rotation
             # r_state[5] = 1.5
             # print('r_state',r_state)
+            # self._graspedObject()
 
             self.last_gripper    = r_state[6]
             # print('gripper:', self.last_gripper)
@@ -858,8 +941,8 @@ class Simulator(object):
             error = np.linalg.norm(q - q_prime)
             steps = max(2, int(error*30))
         self._stopRobotMovement()
-        # self._setRobotJoints(np.deg2rad(DEFAULT_UR5_JOINTS))
-        self._setJointVelocityFromTarget(self._getRobotState())
+        self._setRobotJoints(np.deg2rad(DEFAULT_UR5_JOINTS))
+        # self._setJointVelocityFromTarget(self._getRobotState())
         print('robot arm position reset')
     
     def runManually(self):
@@ -877,7 +960,7 @@ class Simulator(object):
 if __name__ == "__main__":
     sim = Simulator()
     if RUN_ON_TEST_DATA:
-        sim.evalDirect(runs=NUM_TESTED_DATA)
+        sim.evalDirect()
     else:
         sim.runManually()
     sim.shutdown()

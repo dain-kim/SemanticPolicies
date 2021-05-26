@@ -42,8 +42,6 @@ def semantic_parser(sentence, features=[]):
         if word in keywords.keys():
             tagged[i] = (word, keywords[word])    
     tags = [tag for (word, tag) in tagged]
-    print('tokens', tokens)
-    print('tags', tags)
 
     grammar_string = """
         S -> V O | V O L | V O CC V O L | V O CC O L | V O CC O CC O L
