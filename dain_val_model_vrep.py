@@ -848,9 +848,11 @@ class Simulator(object):
             #     self._releaseObject()
             #     phase = 0.95
 
-            if phase > 0.98:
+            if phase > 0.95:
                 self.node.get_logger().info("Finished running trajectory with " + str(self.cnt) + " steps")
                 # self._releaseObject()
+                if 'pour' in self.subtasks[self.subtask_idx]:
+                    self._releaseObject()
                 self._stopRobotMovement()
                 # self.rm_voice = ""
 

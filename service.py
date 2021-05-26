@@ -172,7 +172,7 @@ class NetworkService():
         self.As = []  # this stores the output of the attention network (atn)
         self.subtask_steps = []  # this is for keeping track of how long each subtask took
         self.subtask_idx = 0
-        self._next = False
+        # self._next = False
         # self.cur_subtask = None
         # self.subtask_attn = None
         # self.subtask_embedding = None
@@ -260,18 +260,18 @@ class NetworkService():
 
         # determine if subtask is complete
         # if subtask is complete:
-        if subtask_phase > 0.98 and self.subtask_steps[self.subtask_idx] > 100:
+        if subtask_phase > 0.95 and self.subtask_steps[self.subtask_idx] > 100:
             
             # TEMP hack for pour -> place motion
-            if 'pour' in self.subtasks[self.subtask_idx]:
-                print('this was a pour operation. dropping object now')
-                print(generated)
-                print(dmp_dt)
+            # if 'pour' in self.subtasks[self.subtask_idx]:
+            #     print('this was a pour operation. dropping object now')
+            #     print(generated)
+            #     print(dmp_dt)
             # move on to the next index
             print('moving onto the next subtask..')
             self.subtask_idx += 1
-            print(self.subtask_idx)
-            self._next = True
+            # print(self.subtask_idx)
+            # self._next = True
             # reset variables
             # if no more subtask left:
             if self.subtask_idx >= len(self.subtasks):
