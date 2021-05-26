@@ -464,6 +464,43 @@ bool policy_translation__srv__network_pt__response__convert_from_py(PyObject * _
     ros_message->phase = (float)PyFloat_AS_DOUBLE(field);
     Py_DECREF(field);
   }
+  {  // features
+    PyObject * field = PyObject_GetAttrString(_pymsg, "features");
+    if (!field) {
+      return false;
+    }
+    PyObject * seq_field = PySequence_Fast(field, "expected a sequence in 'features'");
+    if (!seq_field) {
+      Py_DECREF(field);
+      return false;
+    }
+    Py_ssize_t size = PySequence_Size(field);
+    if (-1 == size) {
+      Py_DECREF(seq_field);
+      Py_DECREF(field);
+      return false;
+    }
+    if (!rosidl_generator_c__int32__Sequence__init(&(ros_message->features), size)) {
+      PyErr_SetString(PyExc_RuntimeError, "unable to create int32__Sequence ros_message");
+      Py_DECREF(seq_field);
+      Py_DECREF(field);
+      return false;
+    }
+    int32_t * dest = ros_message->features.data;
+    for (Py_ssize_t i = 0; i < size; ++i) {
+      PyObject * item = PySequence_Fast_GET_ITEM(seq_field, i);
+      if (!item) {
+        Py_DECREF(seq_field);
+        Py_DECREF(field);
+        return false;
+      }
+      assert(PyLong_Check(item));
+      int32_t tmp = (int32_t)PyLong_AsLong(item);
+      memcpy(&dest[i], &tmp, sizeof(int32_t));
+    }
+    Py_DECREF(seq_field);
+    Py_DECREF(field);
+  }
 
   return true;
 }
@@ -678,6 +715,63 @@ PyObject * policy_translation__srv__network_pt__response__convert_to_py(void * r
         return NULL;
       }
     }
+  }
+  {  // features
+    PyObject * field = NULL;
+    field = PyObject_GetAttrString(_pymessage, "features");
+    if (!field) {
+      return NULL;
+    }
+    assert(field->ob_type != NULL);
+    assert(field->ob_type->tp_name != NULL);
+    assert(strcmp(field->ob_type->tp_name, "array.array") == 0);
+    // ensure that itemsize matches the sizeof of the ROS message field
+    PyObject * itemsize_attr = PyObject_GetAttrString(field, "itemsize");
+    assert(itemsize_attr != NULL);
+    size_t itemsize = PyLong_AsSize_t(itemsize_attr);
+    Py_DECREF(itemsize_attr);
+    if (itemsize != sizeof(int32_t)) {
+      PyErr_SetString(PyExc_RuntimeError, "itemsize doesn't match expectation");
+      Py_DECREF(field);
+      return NULL;
+    }
+    // clear the array, poor approach to remove potential default values
+    Py_ssize_t length = PyObject_Length(field);
+    if (-1 == length) {
+      Py_DECREF(field);
+      return NULL;
+    }
+    if (length > 0) {
+      PyObject * pop = PyObject_GetAttrString(field, "pop");
+      assert(pop != NULL);
+      for (Py_ssize_t i = 0; i < length; ++i) {
+        PyObject * ret = PyObject_CallFunctionObjArgs(pop, NULL);
+        if (!ret) {
+          Py_DECREF(pop);
+          Py_DECREF(field);
+          return NULL;
+        }
+        Py_DECREF(ret);
+      }
+      Py_DECREF(pop);
+    }
+    if (ros_message->features.size > 0) {
+      // populating the array.array using the frombytes method
+      PyObject * frombytes = PyObject_GetAttrString(field, "frombytes");
+      assert(frombytes != NULL);
+      int32_t * src = &(ros_message->features.data[0]);
+      PyObject * data = PyBytes_FromStringAndSize((const char *)src, ros_message->features.size * sizeof(int32_t));
+      assert(data != NULL);
+      PyObject * ret = PyObject_CallFunctionObjArgs(frombytes, data, NULL);
+      Py_DECREF(data);
+      Py_DECREF(frombytes);
+      if (!ret) {
+        Py_DECREF(field);
+        return NULL;
+      }
+      Py_DECREF(ret);
+    }
+    Py_DECREF(field);
   }
 
   // ownership of _pymessage is transferred to the caller

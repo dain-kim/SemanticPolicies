@@ -20,70 +20,30 @@ def pattern_finder(tags_curr, pattern, pattern_name):
             locs.append()
     return (tags, locs)
 
-# def semantic_parser(sentence):
-#     print('semantic parser received sentence: ', sentence)
-#     tokens = nltk.word_tokenize(sentence)
-#     tagged = nltk.pos_tag(tokens)
-#     # nltk doesn't seem to correctly identify some verbs
-#     keywords = {'put': 'VB', 'place': 'VB', 'pour': 'VB', 'pick': 'VB'}
-#     for i,(word,tag) in enumerate(tagged):
-#         if word in keywords.keys():
-#             tagged[i] = (word, keywords[word])
-#     tags = [tag for (word, tag) in tagged]
-#     print(tagged)
-
-#     # look for the preposition
-#     if 'IN' in tags and tokens[0] in ["put", "place"]:
-#         prep_idx = tags.index('IN')
-#         VB = tagged[:prep_idx]
-#         PP = tagged[prep_idx:]
-
-#         # pick up task
-#         # look for the form "DT JJ NN", e.g. "the green cup"
-#         st = "pick up the"
-#         jj = ""
-#         if 'JJ' in tags[:prep_idx]:
-#             jj = tokens[tags[:prep_idx].index('JJ')]
-#         nn = tokens[tags[:prep_idx].index('NN')]
-#         pick_up_task = ' '.join([st, jj, nn])
-
-#         # put down task
-#         # st = "put it in the"
-#         st = "pour all of it into the"
-#         jj = ""
-#         if 'JJ' in tags[prep_idx:]:
-#             jj = tokens[tags[prep_idx:].index('JJ')+prep_idx]
-#         # nn = tokens[tags[prep_idx:].index('NN')+prep_idx]
-#         nn = "dish"
-#         put_down_task = ' '.join([st, jj, nn])
-
-#         print('generated subtasks: ')
-#         print([pick_up_task, put_down_task])
-#         return [pick_up_task, put_down_task]
-
-#     print('no subtasks generated: ')
-#     print([sentence])
-#     return [sentence]
-#     # for (word, tag) in tagged:
-#     #     print((word, tag))
-
 num_to_int = {'one':1, 'two':2, 'three':3, 'four':4, 'five':5, 'six':6}
+cup_colormap = {'red':21, 'green':22, 'blue':23}
 
-def semantic_parser(sentence):
+def semantic_parser(sentence, features=[]):
     # manually override tensor input at initialization
     if type(sentence) != str:
         return []
     # pattern matching
     print('\n------------\n')
+    sentence = sentence.lower()
     print('semantic parser received:', sentence)
     tokens = nltk.word_tokenize(sentence)
     tagged = nltk.pos_tag(tokens)
-    # nltk doesn't seem to correctly identify some verbs
-    keywords = {'put': 'VB', 'place': 'VB', 'pour': 'VB', 'pick': 'VB'}
+    # nltk doesn't seem to correctly tag some words
+    keywords = {'put': 'VB', 'place': 'VB', 'pour': 'VB', 'pick': 'VB',
+                'all': 'PDT',
+                'cup': 'NN', 'cups': 'NNS',
+                'red': 'JJ', 'yellow': 'JJ', 'green': 'JJ', 'blue': 'JJ'}
     for i,(word,tag) in enumerate(tagged):
         if word in keywords.keys():
             tagged[i] = (word, keywords[word])    
     tags = [tag for (word, tag) in tagged]
+    print('tokens', tokens)
+    print('tags', tags)
 
     grammar_string = """
         S -> V O | V O L | V O CC V O L | V O CC O L | V O CC O CC O L
@@ -113,8 +73,27 @@ def semantic_parser(sentence):
             subtasks.append(subtask)
         elif tree[subtree_idx,-1] == 'NNS':
             # multiple objects
-            pass #TODO
-            if tree[subtree_idx, 0] == 'CD':
+            if tree[subtree_idx, 0] == 'PDT':
+                # "all" command. how many objects?
+                # if color specified in object, count that
+                if 'JJ' in tree[subtree_idx]:
+                    color_idx = tree[subtree_idx].index('JJ')
+                    color = tokens[get_abs_idx(tree,[subtree_idx,color_idx])]
+                    obj_idx = cup_colormap[color]
+                    count = features.count(obj_idx)
+                    for i in range(count):
+                        if obj_l[1] == 'the':
+                            subtask = ' '.join(['pick', 'up'] + obj_l[1:-1] + ['cup'])
+                        else:
+                            subtask = ' '.join(['pick', 'up', 'the'] + obj_l[1:-1] + ['cup'])
+                        subtasks.append(subtask)
+                # if color not specified, all the cups in the scene
+                else:
+                    count = sum([features.count(i) for i in [21,22,23]])
+                    for i in range(count):
+                        subtask = ' '.join(['pick', 'up', 'the', 'cup'])
+                        subtasks.append(subtask)
+            elif tree[subtree_idx, 0] == 'CD':
                 count = num_to_int[tokens[get_abs_idx(tree, [subtree_idx,0])].lower()]
                 for i in range(count):
                     subtask = ' '.join(['pick', 'up', 'the'] + obj_l[1:-1] + ['cup'])
@@ -133,7 +112,8 @@ def semantic_parser(sentence):
     if len(trees) > 1:
         print('WARNING: more than one tree generated')
     if len(trees)  == 0:
-        print('WARNING: parser could not understand input')
+        print('ERROR: parser could not understand input')
+        return []
 
     for tree in trees:
         tree.pretty_print()
@@ -188,64 +168,63 @@ def semantic_parser(sentence):
             subtasks = [val for pair in zip(subtasks, place_subtasks) for val in pair]
             print('generated subtasks:', subtasks)
             return subtasks
-            
+
         elif len(tree) == 7:
             # V O CC O CC O L
             return [] # TODO
         
-        
 
-def _parser_old(sentence):
-    action = None
-    # pattern matching
-    print('semantic parser received sentence: ', sentence)
-    tokens = nltk.word_tokenize(sentence)
-    tagged = nltk.pos_tag(tokens)
-    # nltk doesn't seem to correctly identify some verbs
-    keywords = {'put': 'VB', 'place': 'VB', 'pour': 'VB', 'pick': 'VB'}
-    for i,(word,tag) in enumerate(tagged):
-        if word in keywords.keys():
-            tagged[i] = (word, keywords[word])    
-    tags = [tag for (word, tag) in tagged]
-    print(tagged)
+# def _parser_old(sentence):
+#     action = None
+#     # pattern matching
+#     print('semantic parser received sentence: ', sentence)
+#     tokens = nltk.word_tokenize(sentence)
+#     tagged = nltk.pos_tag(tokens)
+#     # nltk doesn't seem to correctly identify some verbs
+#     keywords = {'put': 'VB', 'place': 'VB', 'pour': 'VB', 'pick': 'VB'}
+#     for i,(word,tag) in enumerate(tagged):
+#         if word in keywords.keys():
+#             tagged[i] = (word, keywords[word])    
+#     tags = [tag for (word, tag) in tagged]
+#     print(tagged)
 
-    # step 1: segment sentence based on POS tags
-    segments = {'V': [['VB', 'RP'], ['VB']],
-    'L': [['IN', 'DT', 'JJ', 'NN'], ['IN', 'DT', 'NN']],
-    'O': [['DT', 'JJ', 'NN'], ['DT', 'NN'], ['PDT', 'DT', 'JJ', 'NNS'], ['PDT', 'DT', 'NNS'], ['PDT', 'JJ', 'NNS'], ['PDT', 'NNS'], ['CD', 'JJ', 'NN'], ['CD', 'JJ', 'NNS'], ['CD', 'NN'], ['CD', 'NNS'], ['PRP']]}
-    segmented = tags[:]
-    for pattern_name, patterns in segments.items():
-        for pattern in patterns:
-            while pattern_finder(segmented, pattern, pattern_name) != segmented:
-                segmented = pattern_finder(segmented, pattern, pattern_name)
-    print(segmented)
+#     # step 1: segment sentence based on POS tags
+#     segments = {'V': [['VB', 'RP'], ['VB']],
+#     'L': [['IN', 'DT', 'JJ', 'NN'], ['IN', 'DT', 'NN']],
+#     'O': [['DT', 'JJ', 'NN'], ['DT', 'NN'], ['PDT', 'DT', 'JJ', 'NNS'], ['PDT', 'DT', 'NNS'], ['PDT', 'JJ', 'NNS'], ['PDT', 'NNS'], ['CD', 'JJ', 'NN'], ['CD', 'JJ', 'NNS'], ['CD', 'NN'], ['CD', 'NNS'], ['PRP']]}
+#     segmented = tags[:]
+#     for pattern_name, patterns in segments.items():
+#         for pattern in patterns:
+#             while pattern_finder(segmented, pattern, pattern_name) != segmented:
+#                 segmented = pattern_finder(segmented, pattern, pattern_name)
+#     print(segmented)
 
-    # step 2: identify action
-    templates = {'pick': [['V','O']],
-                 'place': [['V','O','L'],['V','O','CC','O','L'],['V','O','CC','O','CC','O','L']],
-                 'pick_and_place': [['V','O','CC','V','O','L']]}
+#     # step 2: identify action
+#     templates = {'pick': [['V','O']],
+#                  'place': [['V','O','L'],['V','O','CC','O','L'],['V','O','CC','O','CC','O','L']],
+#                  'pick_and_place': [['V','O','CC','V','O','L']]}
     
-    for action_name, actions in templates.items():
-        for template in actions:
-            if segmented == template:
-                action = action_name
-                print('action:', action_name)
-                print(segmented)
-                print(sentence)
+#     for action_name, actions in templates.items():
+#         for template in actions:
+#             if segmented == template:
+#                 action = action_name
+#                 print('action:', action_name)
+#                 print(segmented)
+#                 print(sentence)
     
-    if action is None:
-        print('ERROR: sentence is not correctly structured')
-        return []
+#     if action is None:
+#         print('ERROR: sentence is not correctly structured')
+#         return []
     
-    # step 3: generate subtask commands
-    if action == 'pick':
-        print('no subtasks generated: ')
-        print([sentence])
-        return [sentence]
-    else:
-        loc = tokens[tags.index('IN'):] # ['in','the','bin']
-        objs = tokens[tags.index('')]
-        subtasks = []
+#     # step 3: generate subtask commands
+#     if action == 'pick':
+#         print('no subtasks generated: ')
+#         print([sentence])
+#         return [sentence]
+#     else:
+#         loc = tokens[tags.index('IN'):] # ['in','the','bin']
+#         objs = tokens[tags.index('')]
+#         subtasks = []
         
 
 

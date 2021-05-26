@@ -6,9 +6,9 @@
 
 #IncludeRegexTransform: 
 
-/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/msg/dummy__functions.c
+/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/msg/dummy__functions.c
 policy_translation/msg/dummy__functions.h
-/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/msg/policy_translation/msg/dummy__functions.h
+/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/msg/policy_translation/msg/dummy__functions.h
 assert.h
 -
 stdbool.h
@@ -18,11 +18,11 @@ stdlib.h
 string.h
 -
 sensor_msgs/msg/image__functions.h
-/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/msg/sensor_msgs/msg/image__functions.h
+/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/msg/sensor_msgs/msg/image__functions.h
 
-/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/srv/network_pt__functions.c
+/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/srv/network_pt__functions.c
 policy_translation/srv/network_pt__functions.h
-/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/srv/policy_translation/srv/network_pt__functions.h
+/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/srv/policy_translation/srv/network_pt__functions.h
 assert.h
 -
 stdbool.h
@@ -32,15 +32,15 @@ stdlib.h
 string.h
 -
 sensor_msgs/msg/image__functions.h
-/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/srv/sensor_msgs/msg/image__functions.h
+/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/srv/sensor_msgs/msg/image__functions.h
 rosidl_generator_c/string_functions.h
-/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/srv/rosidl_generator_c/string_functions.h
+/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/srv/rosidl_generator_c/string_functions.h
 rosidl_generator_c/primitives_sequence_functions.h
-/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/srv/rosidl_generator_c/primitives_sequence_functions.h
+/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/srv/rosidl_generator_c/primitives_sequence_functions.h
 
-/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/srv/tune_network__functions.c
+/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/srv/tune_network__functions.c
 policy_translation/srv/tune_network__functions.h
-/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/srv/policy_translation/srv/tune_network__functions.h
+/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_generator_c/policy_translation/srv/policy_translation/srv/tune_network__functions.h
 assert.h
 -
 stdbool.h

@@ -241,6 +241,9 @@ struct NetworkPT_Response_
   using _phase_type =
     float;
   _phase_type phase;
+  using _features_type =
+    std::vector<int32_t, typename ContainerAllocator::template rebind<int32_t>::other>;
+  _features_type features;
 
   // setters for named parameter idiom
   Type & set__trajectory(
@@ -271,6 +274,12 @@ struct NetworkPT_Response_
     const float & _arg)
   {
     this->phase = _arg;
+    return *this;
+  }
+  Type & set__features(
+    const std::vector<int32_t, typename ContainerAllocator::template rebind<int32_t>::other> & _arg)
+  {
+    this->features = _arg;
     return *this;
   }
 
@@ -329,6 +338,9 @@ struct NetworkPT_Response_
       return false;
     }
     if (this->phase != other.phase) {
+      return false;
+    }
+    if (this->features != other.features) {
       return false;
     }
     return true;

@@ -1,8 +1,8 @@
 {
   "package_name": "policy_translation",
   "non_idl_tuples": [
-    "/home/irg/irg/LanguagePolicies/ros2/src/policy_translation:srv/NetworkPT.srv",
-    "/home/irg/irg/LanguagePolicies/ros2/src/policy_translation:srv/TuneNetwork.srv",
-    "/home/irg/irg/LanguagePolicies/ros2/src/policy_translation:msg/Dummy.msg"
+    "/home/irg/irg/SemanticPolicies/ros2/src/policy_translation:srv/NetworkPT.srv",
+    "/home/irg/irg/SemanticPolicies/ros2/src/policy_translation:srv/TuneNetwork.srv",
+    "/home/irg/irg/SemanticPolicies/ros2/src/policy_translation:msg/Dummy.msg"
   ]
 }

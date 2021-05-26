@@ -172,6 +172,7 @@ policy_translation__srv__NetworkPT_Request__Sequence__destroy(policy_translation
 // Member `trajectory`
 // Member `confidence`
 // Member `weights`
+// Member `features`
 // already included above
 // #include "rosidl_generator_c/primitives_sequence_functions.h"
 
@@ -198,6 +199,11 @@ policy_translation__srv__NetworkPT_Response__init(policy_translation__srv__Netwo
     return false;
   }
   // phase
+  // features
+  if (!rosidl_generator_c__int32__Sequence__init(&msg->features, 0)) {
+    policy_translation__srv__NetworkPT_Response__fini(msg);
+    return false;
+  }
   return true;
 }
 
@@ -215,6 +221,8 @@ policy_translation__srv__NetworkPT_Response__fini(policy_translation__srv__Netwo
   // weights
   rosidl_generator_c__float__Sequence__fini(&msg->weights);
   // phase
+  // features
+  rosidl_generator_c__int32__Sequence__fini(&msg->features);
 }
 
 policy_translation__srv__NetworkPT_Response *

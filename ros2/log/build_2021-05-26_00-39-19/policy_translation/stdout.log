@@ -1,0 +1,264 @@
+-- The C compiler identification is GNU 7.5.0
+-- The CXX compiler identification is GNU 7.5.0
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /usr/bin/c++
+-- Check for working CXX compiler: /usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ament_cmake: 0.8.3 (/home/irg/ros2_eloquent/install/ament_cmake/share/ament_cmake/cmake)
+-- Found PythonInterp: /usr/bin/python3 (found suitable version "3.6.9", minimum required is "3") 
+-- Using PYTHON_EXECUTABLE: /usr/bin/python3
+-- Found rosidl_default_generators: 0.8.0 (/home/irg/ros2_eloquent/install/rosidl_default_generators/share/rosidl_default_generators/cmake)
+-- Found rosidl_adapter: 0.8.3 (/home/irg/ros2_eloquent/install/rosidl_adapter/share/rosidl_adapter/cmake)
+-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "1.1.1") 
+-- Found FastRTPS: /home/irg/ros2_eloquent/install/fastrtps/include  
+-- Found sensor_msgs: 0.8.1 (/home/irg/ros2_eloquent/install/sensor_msgs/share/sensor_msgs/cmake)
+-- Found PythonInterp: /usr/bin/python3 (found version "3.6.9") 
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_introspection_c;rosidl_typesupport_fastrtps_c
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_introspection_cpp;rosidl_typesupport_fastrtps_cpp
+-- Found rmw_implementation_cmake: 0.8.1 (/home/irg/ros2_eloquent/install/rmw_implementation_cmake/share/rmw_implementation_cmake/cmake)
+-- Found PythonInterp: /usr/bin/python3 (found suitable version "3.6.9", minimum required is "3.5") 
+-- Found python_cmake_module: 0.8.0 (/home/irg/ros2_eloquent/install/python_cmake_module/share/python_cmake_module/cmake)
+-- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.6m.so (found suitable version "3.6.9", minimum required is "3.5") 
+-- Using PYTHON_EXECUTABLE: /usr/bin/python3
+-- Using PYTHON_INCLUDE_DIRS: /usr/include/python3.6m
+-- Using PYTHON_LIBRARIES: /usr/lib/x86_64-linux-gnu/libpython3.6m.so
+-- Found PythonExtra: .so  
+-- Found ament_lint_auto: 0.8.2 (/home/irg/ros2_eloquent/install/ament_lint_auto/share/ament_lint_auto/cmake)
+-- Added test 'lint_cmake' to check CMake code style
+-- Added test 'xmllint' to check XML markup files
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation
+[35m[1mScanning dependencies of target policy_translation__cpp[0m
+[  2%] [34m[1mGenerating C code for ROS interfaces[0m
+[  4%] [34m[1mGenerating C++ code for ROS interfaces[0m
+[  4%] Built target policy_translation__cpp
+[  6%] [34m[1mGenerating C++ type support dispatch for ROS interfaces[0m
+[  8%] [34m[1mGenerating C++ introspection for ROS interfaces[0m
+[35m[1mScanning dependencies of target policy_translation__rosidl_generator_c[0m
+[ 10%] [34m[1mGenerating C++ type support for eProsima Fast-RTPS[0m
+[ 12%] [32mBuilding C object CMakeFiles/policy_translation__rosidl_generator_c.dir/rosidl_generator_c/policy_translation/srv/network_pt__functions.c.o[0m
+[ 14%] [32mBuilding C object CMakeFiles/policy_translation__rosidl_generator_c.dir/rosidl_generator_c/policy_translation/srv/tune_network__functions.c.o[0m
+[ 17%] [32mBuilding C object CMakeFiles/policy_translation__rosidl_generator_c.dir/rosidl_generator_c/policy_translation/msg/dummy__functions.c.o[0m
+[ 19%] [32m[1mLinking C shared library libpolicy_translation__rosidl_generator_c.so[0m
+[ 19%] Built target policy_translation__rosidl_generator_c
+[ 23%] [34m[1mGenerating C introspection for ROS interfaces[0m
+[ 23%] [34m[1mGenerating C type support dispatch for ROS interfaces[0m
+[35m[1mScanning dependencies of target policy_translation__rosidl_typesupport_introspection_cpp[0m
+[ 25%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/policy_translation/srv/tune_network__type_support.cpp.o[0m
+[ 27%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/policy_translation/msg/dummy__type_support.cpp.o[0m
+[ 29%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/policy_translation/srv/network_pt__type_support.cpp.o[0m
+[35m[1mScanning dependencies of target policy_translation__rosidl_typesupport_cpp[0m
+[35m[1mScanning dependencies of target policy_translation__rosidl_typesupport_fastrtps_cpp[0m
+[35m[1mScanning dependencies of target policy_translation__rosidl_typesupport_c[0m
+[ 31%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/policy_translation/srv/tune_network__type_support.cpp.o[0m
+[ 34%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/policy_translation/srv/dds_fastrtps/network_pt__type_support.cpp.o[0m
+[ 36%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/policy_translation/srv/network_pt__type_support.cpp.o[0m
+[ 38%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_c.dir/rosidl_typesupport_c/policy_translation/srv/network_pt__type_support.cpp.o[0m
+[ 40%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_c.dir/rosidl_typesupport_c/policy_translation/srv/tune_network__type_support.cpp.o[0m
+[ 42%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_c.dir/rosidl_typesupport_c/policy_translation/msg/dummy__type_support.cpp.o[0m
+[ 44%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/policy_translation/msg/dummy__type_support.cpp.o[0m
+[ 46%] [32m[1mLinking CXX shared library libpolicy_translation__rosidl_typesupport_c.so[0m
+[ 48%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/policy_translation/srv/dds_fastrtps/tune_network__type_support.cpp.o[0m
+[ 51%] [32m[1mLinking CXX shared library libpolicy_translation__rosidl_typesupport_introspection_cpp.so[0m
+[ 51%] Built target policy_translation__rosidl_typesupport_c
+[ 53%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/policy_translation/msg/dds_fastrtps/dummy__type_support.cpp.o[0m
+[35m[1mScanning dependencies of target policy_translation__rosidl_typesupport_introspection_c[0m
+[ 57%] [32mBuilding C object CMakeFiles/policy_translation__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/policy_translation/srv/tune_network__type_support.c.o[0m
+[ 57%] [32mBuilding C object CMakeFiles/policy_translation__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/policy_translation/srv/network_pt__type_support.c.o[0m
+[ 59%] [32mBuilding C object CMakeFiles/policy_translation__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/policy_translation/msg/dummy__type_support.c.o[0m
+[ 61%] [32m[1mLinking C shared library libpolicy_translation__rosidl_typesupport_introspection_c.so[0m
+[ 61%] Built target policy_translation__rosidl_typesupport_introspection_cpp
+[ 63%] [32m[1mLinking CXX shared library libpolicy_translation__rosidl_typesupport_cpp.so[0m
+[ 63%] Built target policy_translation__rosidl_typesupport_introspection_c
+[ 63%] Built target policy_translation__rosidl_typesupport_cpp
+[ 65%] [32m[1mLinking CXX shared library libpolicy_translation__rosidl_typesupport_fastrtps_cpp.so[0m
+[ 65%] Built target policy_translation__rosidl_typesupport_fastrtps_cpp
+[ 68%] [34m[1mGenerating C type support for eProsima Fast-RTPS[0m
+[35m[1mScanning dependencies of target policy_translation__rosidl_typesupport_fastrtps_c[0m
+[ 72%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/policy_translation/srv/network_pt__type_support_c.cpp.o[0m
+[ 72%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/policy_translation/srv/tune_network__type_support_c.cpp.o[0m
+[ 74%] [32mBuilding CXX object CMakeFiles/policy_translation__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/policy_translation/msg/dummy__type_support_c.cpp.o[0m
+[ 76%] [32m[1mLinking CXX shared library libpolicy_translation__rosidl_typesupport_fastrtps_c.so[0m
+[ 76%] Built target policy_translation__rosidl_typesupport_fastrtps_c
+[35m[1mScanning dependencies of target policy_translation[0m
+[ 76%] Built target policy_translation
+[35m[1mScanning dependencies of target policy_translation__py[0m
+[ 78%] [34m[1mGenerating Python code for ROS interfaces[0m
+[ 78%] Built target policy_translation__py
+[35m[1mScanning dependencies of target policy_translation__python[0m
+[ 85%] [32mBuilding C object CMakeFiles/policy_translation__python.dir/rosidl_generator_py/policy_translation/msg/_dummy_s.c.o[0m
+[ 85%] [32mBuilding C object CMakeFiles/policy_translation__python.dir/rosidl_generator_py/policy_translation/srv/_network_pt_s.c.o[0m
+[ 85%] [32mBuilding C object CMakeFiles/policy_translation__python.dir/rosidl_generator_py/policy_translation/srv/_tune_network_s.c.o[0m
+[ 87%] [32m[1mLinking C shared library rosidl_generator_py/policy_translation/libpolicy_translation__python.so[0m
+[ 87%] Built target policy_translation__python
+[35m[1mScanning dependencies of target policy_translation__rosidl_typesupport_introspection_c__pyext[0m
+[35m[1mScanning dependencies of target policy_translation__rosidl_typesupport_c__pyext[0m
+[35m[1mScanning dependencies of target policy_translation__rosidl_typesupport_fastrtps_c__pyext[0m
+[ 89%] [32mBuilding C object CMakeFiles/policy_translation__rosidl_typesupport_introspection_c__pyext.dir/rosidl_generator_py/policy_translation/_policy_translation_s.ep.rosidl_typesupport_introspection_c.c.o[0m
+[ 91%] [32mBuilding C object CMakeFiles/policy_translation__rosidl_typesupport_fastrtps_c__pyext.dir/rosidl_generator_py/policy_translation/_policy_translation_s.ep.rosidl_typesupport_fastrtps_c.c.o[0m
+[ 93%] [32mBuilding C object CMakeFiles/policy_translation__rosidl_typesupport_c__pyext.dir/rosidl_generator_py/policy_translation/_policy_translation_s.ep.rosidl_typesupport_c.c.o[0m
+[ 95%] [32m[1mLinking C shared library rosidl_generator_py/policy_translation/policy_translation_s__rosidl_typesupport_introspection_c.cpython-36m-x86_64-linux-gnu.so[0m
+[ 97%] [32m[1mLinking CXX shared library rosidl_generator_py/policy_translation/policy_translation_s__rosidl_typesupport_fastrtps_c.cpython-36m-x86_64-linux-gnu.so[0m
+[100%] [32m[1mLinking C shared library rosidl_generator_py/policy_translation/policy_translation_s__rosidl_typesupport_c.cpython-36m-x86_64-linux-gnu.so[0m
+[100%] Built target policy_translation__rosidl_typesupport_c__pyext
+[100%] Built target policy_translation__rosidl_typesupport_introspection_c__pyext
+[100%] Built target policy_translation__rosidl_typesupport_fastrtps_c__pyext
+[  2%] Built target policy_translation__cpp
+[ 12%] Built target policy_translation__rosidl_generator_c
+[ 23%] Built target policy_translation__rosidl_typesupport_introspection_c
+[ 34%] Built target policy_translation__rosidl_typesupport_c
+[ 44%] Built target policy_translation__rosidl_typesupport_cpp
+[ 55%] Built target policy_translation__rosidl_typesupport_fastrtps_cpp
+[ 65%] Built target policy_translation__rosidl_typesupport_introspection_cpp
+[ 76%] Built target policy_translation__rosidl_typesupport_fastrtps_c
+[ 76%] Built target policy_translation
+[ 78%] Built target policy_translation__py
+[ 87%] Built target policy_translation__python
+[ 91%] Built target policy_translation__rosidl_typesupport_fastrtps_c__pyext
+[ 95%] Built target policy_translation__rosidl_typesupport_introspection_c__pyext
+[100%] Built target policy_translation__rosidl_typesupport_c__pyext
+[36mInstall the project...[0m
+-- Install configuration: ""
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/ament_index/resource_index/rosidl_interfaces/policy_translation
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__rosidl_typesupport_c.so
+-- Set runtime path of "/home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__rosidl_typesupport_c.so" to ""
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/environment/library_path.sh
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/environment/library_path.dsv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__rosidl_typesupport_cpp.so
+-- Set runtime path of "/home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__rosidl_typesupport_cpp.so" to ""
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/rosidl_typesupport_introspection_c__visibility_control.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dummy__type_support.c
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dummy__rosidl_typesupport_introspection_c.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/tune_network__type_support.c
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/tune_network__rosidl_typesupport_introspection_c.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/network_pt__type_support.c
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/network_pt__rosidl_typesupport_introspection_c.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__rosidl_typesupport_introspection_c.so
+-- Set runtime path of "/home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__rosidl_typesupport_introspection_c.so" to ""
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dummy__functions.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/rosidl_generator_c__visibility_control.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dummy.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dummy__type_support.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dummy__struct.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dummy__functions.c
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/tune_network.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/tune_network__struct.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/network_pt__functions.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/network_pt.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/tune_network__functions.c
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/tune_network__type_support.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/network_pt__type_support.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/network_pt__struct.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/network_pt__functions.c
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/tune_network__functions.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__rosidl_generator_c.so
+-- Set runtime path of "/home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__rosidl_generator_c.so" to ""
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dummy__rosidl_typesupport_fastrtps_c.h
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/network_pt__rosidl_typesupport_fastrtps_c.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/tune_network__rosidl_typesupport_fastrtps_c.h
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__rosidl_typesupport_fastrtps_c.so
+-- Set runtime path of "/home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__rosidl_typesupport_fastrtps_c.so" to ""
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dummy__rosidl_typesupport_fastrtps_cpp.hpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dds_fastrtps
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/network_pt__rosidl_typesupport_fastrtps_cpp.hpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/tune_network__rosidl_typesupport_fastrtps_cpp.hpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/dds_fastrtps
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__rosidl_typesupport_fastrtps_cpp.so
+-- Set runtime path of "/home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__rosidl_typesupport_fastrtps_cpp.so" to ""
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dummy__struct.hpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dummy__traits.hpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dummy.hpp
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/tune_network.hpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/network_pt.hpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/network_pt__traits.hpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/network_pt__struct.hpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/tune_network__traits.hpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/tune_network__struct.hpp
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dummy__type_support.cpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/msg/dummy__rosidl_typesupport_introspection_cpp.hpp
+-- Up-to-date: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/tune_network__type_support.cpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/network_pt__rosidl_typesupport_introspection_cpp.hpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/tune_network__rosidl_typesupport_introspection_cpp.hpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/include/policy_translation/srv/network_pt__type_support.cpp
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__rosidl_typesupport_introspection_cpp.so
+-- Set runtime path of "/home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__rosidl_typesupport_introspection_cpp.so" to ""
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/environment/pythonpath.sh
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/environment/pythonpath.dsv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/__init__.py
+Compiling '/home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/__init__.py'...
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/srv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/srv/_network_pt.py
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/srv/_network_pt_s.c
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/srv/_tune_network.py
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/srv/__init__.py
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/srv/_tune_network_s.c
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/msg
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/msg/_dummy_s.c
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/msg/__init__.py
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/msg/_dummy.py
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/policy_translation_s__rosidl_typesupport_c.cpython-36m-x86_64-linux-gnu.so
+-- Set runtime path of "/home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/policy_translation_s__rosidl_typesupport_c.cpython-36m-x86_64-linux-gnu.so" to ""
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/policy_translation_s__rosidl_typesupport_introspection_c.cpython-36m-x86_64-linux-gnu.so
+-- Set runtime path of "/home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/policy_translation_s__rosidl_typesupport_introspection_c.cpython-36m-x86_64-linux-gnu.so" to ""
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/policy_translation_s__rosidl_typesupport_fastrtps_c.cpython-36m-x86_64-linux-gnu.so
+-- Set runtime path of "/home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/python3.6/site-packages/policy_translation/policy_translation_s__rosidl_typesupport_fastrtps_c.cpython-36m-x86_64-linux-gnu.so" to ""
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__python.so
+-- Set runtime path of "/home/irg/irg/SemanticPolicies/ros2/install/policy_translation/lib/libpolicy_translation__python.so" to ""
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/srv/NetworkPT.idl
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/srv/TuneNetwork.idl
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/msg/Dummy.idl
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/srv/NetworkPT.srv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/srv/NetworkPT_Request.msg
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/srv/NetworkPT_Response.msg
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/srv/TuneNetwork.srv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/srv/TuneNetwork_Request.msg
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/srv/TuneNetwork_Response.msg
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/msg/Dummy.msg
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/ament_index/resource_index/package_run_dependencies/policy_translation
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/ament_index/resource_index/parent_prefix_path/policy_translation
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/environment/ament_prefix_path.sh
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/environment/ament_prefix_path.dsv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/environment/path.sh
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/environment/path.dsv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/local_setup.bash
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/local_setup.sh
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/local_setup.zsh
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/local_setup.dsv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/package.dsv
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/ament_index/resource_index/packages/policy_translation
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/cmake/rosidl_cmake-extras.cmake
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/cmake/ament_cmake_export_dependencies-extras.cmake
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/cmake/ament_cmake_export_libraries-extras.cmake
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/cmake/ament_cmake_export_include_directories-extras.cmake
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/cmake/policy_translationConfig.cmake
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/cmake/policy_translationConfig-version.cmake
+-- Installing: /home/irg/irg/SemanticPolicies/ros2/install/policy_translation/share/policy_translation/package.xml

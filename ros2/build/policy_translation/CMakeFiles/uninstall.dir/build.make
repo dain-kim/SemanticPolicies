@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/irg/irg/LanguagePolicies/ros2/src/policy_translation
+CMAKE_SOURCE_DIR = /home/irg/irg/SemanticPolicies/ros2/src/policy_translation
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/irg/irg/LanguagePolicies/ros2/build/policy_translation
+CMAKE_BINARY_DIR = /home/irg/irg/SemanticPolicies/ros2/build/policy_translation
 
 # Utility rule file for uninstall.
 
@@ -67,6 +67,6 @@ CMakeFiles/uninstall.dir/clean:
 .PHONY : CMakeFiles/uninstall.dir/clean
 
 CMakeFiles/uninstall.dir/depend:
-	cd /home/irg/irg/LanguagePolicies/ros2/build/policy_translation && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/irg/irg/LanguagePolicies/ros2/src/policy_translation /home/irg/irg/LanguagePolicies/ros2/src/policy_translation /home/irg/irg/LanguagePolicies/ros2/build/policy_translation /home/irg/irg/LanguagePolicies/ros2/build/policy_translation /home/irg/irg/LanguagePolicies/ros2/build/policy_translation/CMakeFiles/uninstall.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/irg/irg/SemanticPolicies/ros2/build/policy_translation && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/irg/irg/SemanticPolicies/ros2/src/policy_translation /home/irg/irg/SemanticPolicies/ros2/src/policy_translation /home/irg/irg/SemanticPolicies/ros2/build/policy_translation /home/irg/irg/SemanticPolicies/ros2/build/policy_translation /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/uninstall.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/uninstall.dir/depend
 

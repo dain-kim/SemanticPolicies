@@ -52,6 +52,7 @@ typedef struct policy_translation__srv__NetworkPT_Request__Sequence
 // Member 'trajectory'
 // Member 'confidence'
 // Member 'weights'
+// Member 'features'
 // already included above
 // #include "rosidl_generator_c/primitives_sequence.h"
 
@@ -63,6 +64,7 @@ typedef struct policy_translation__srv__NetworkPT_Response
   int32_t timesteps;
   rosidl_generator_c__float__Sequence weights;
   float phase;
+  rosidl_generator_c__int32__Sequence features;
 } policy_translation__srv__NetworkPT_Response;
 
 // Struct for a sequence of policy_translation__srv__NetworkPT_Response.

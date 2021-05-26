@@ -1,11 +1,11 @@
 {
   "package_name": "policy_translation",
-  "output_dir": "/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_generator_py/policy_translation",
+  "output_dir": "/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_generator_py/policy_translation",
   "template_dir": "/home/irg/ros2_eloquent/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource",
   "idl_tuples": [
-    "/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_adapter/policy_translation:srv/NetworkPT.idl",
-    "/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_adapter/policy_translation:srv/TuneNetwork.idl",
-    "/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_adapter/policy_translation:msg/Dummy.idl"
+    "/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_adapter/policy_translation:srv/NetworkPT.idl",
+    "/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_adapter/policy_translation:srv/TuneNetwork.idl",
+    "/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_adapter/policy_translation:msg/Dummy.idl"
   ],
   "ros_interface_dependencies": [
     "sensor_msgs:/home/irg/ros2_eloquent/install/sensor_msgs/share/sensor_msgs/msg/BatteryState.idl",
@@ -112,9 +112,9 @@
     "/home/irg/ros2_eloquent/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource/_msg.py.em",
     "/home/irg/ros2_eloquent/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource/_srv_pkg_typesupport_entry_point.c.em",
     "/home/irg/ros2_eloquent/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource/_srv.py.em",
-    "/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_adapter/policy_translation/srv/NetworkPT.idl",
-    "/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_adapter/policy_translation/srv/TuneNetwork.idl",
-    "/home/irg/irg/LanguagePolicies/ros2/build/policy_translation/rosidl_adapter/policy_translation/msg/Dummy.idl",
+    "/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_adapter/policy_translation/srv/NetworkPT.idl",
+    "/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_adapter/policy_translation/srv/TuneNetwork.idl",
+    "/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/rosidl_adapter/policy_translation/msg/Dummy.idl",
     "/home/irg/ros2_eloquent/install/sensor_msgs/share/sensor_msgs/msg/BatteryState.idl",
     "/home/irg/ros2_eloquent/install/sensor_msgs/share/sensor_msgs/msg/CameraInfo.idl",
     "/home/irg/ros2_eloquent/install/sensor_msgs/share/sensor_msgs/msg/ChannelFloat32.idl",

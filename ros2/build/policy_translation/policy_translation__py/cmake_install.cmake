@@ -1,8 +1,8 @@
-# Install script for directory: /home/irg/irg/LanguagePolicies/ros2/build/policy_translation/policy_translation__py
+# Install script for directory: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/policy_translation__py
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/irg/irg/LanguagePolicies/ros2/install/policy_translation")
+  set(CMAKE_INSTALL_PREFIX "/home/irg/irg/SemanticPolicies/ros2/install/policy_translation")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 

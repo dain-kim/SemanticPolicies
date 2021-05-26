@@ -127,7 +127,7 @@ class NetworkService():
         return result
 
     def cbk_network_dmp_ros2(self, req, res):
-        res.trajectory, res.confidence, res.timesteps, res.weights, res.phase = self.cbk_network_dmp(req)
+        res.trajectory, res.confidence, res.timesteps, res.weights, res.phase, res.features = self.cbk_network_dmp(req)
         return res
     
     def imgmsg_to_cv2(self, img_msg, desired_encoding="passthrough"):   
@@ -228,10 +228,10 @@ class NetworkService():
             phase_value = 1
         # get the embedding of the current subtask
         try:
-            task_embedding = self.subtask_embeddings[self.subtask_idx]            
+            task_embedding = self.subtask_embeddings[self.subtask_idx]
         except:
-            print('You shouldn\'t be here')
-            return
+            # print('You shouldn\'t be here')
+            return ([], [], 0, [], 0.0, [int(i) for i in self.features.T[0]])
         # call the model with the current embedding
         input_data = (
             # tf.convert_to_tensor(np.tile([self.language],[250, 1]), dtype=tf.int64), ## Original language input in tensor form
@@ -241,6 +241,7 @@ class NetworkService():
         )
         print("OBJECTS DETECTED (classes and boxes)")
         print(self.features)
+        print(self.features.T[0])
         print("TASK EMBEDDING")
         print('task embedding\n', task_embedding[0])
 
@@ -307,7 +308,7 @@ class NetworkService():
 
         
         self.req_step += 1
-        return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), float(phase_value)) 
+        return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), float(phase_value), [int(i) for i in self.features.T[0]])
     
     def idToText(self, id):
         names = ["", "Yellow Small Round", "Red Small Round", "Green Small Round", "Blue Small Round", "Pink Small Round",

@@ -242,7 +242,8 @@ class Simulator(object):
         trajectory = np.asarray(result.trajectory).reshape(-1, 7)
         trajectory = self.restoreValues(trajectory, norm[0,:], norm[1,:])
         phase      = float(result.phase)
-        return trajectory, phase
+        features   = result.features
+        return trajectory, phase, features
     
     def normalize(self, value, v_min, v_max):
         if type(value) == list:
@@ -463,7 +464,7 @@ class Simulator(object):
             while phase < th and cnt < int(gt_trajectory.shape[0] * 1.5):
                 state = self._getRobotState() if feedback else gt_trajectory[-1 if cnt >= gt_trajectory.shape[0] else cnt,:]
                 cnt += 1
-                tf_trajectory, phase = self.predictTrajectory(data["voice"], state, cnt)
+                tf_trajectory, phase, _ = self.predictTrajectory(data["voice"], state, cnt)
                 r_state    = tf_trajectory[-1,:]
                 eval_data["trajectory"]["state"].append(r_state.tolist())
                 r_state[6] = r_state[6] 
@@ -518,7 +519,7 @@ class Simulator(object):
             while phase < th and cnt < int(gt_trajectory.shape[0] * 1.5):
                 state = self._getRobotState() if feedback else gt_trajectory[-1 if cnt >= gt_trajectory.shape[0] else cnt,:]
                 cnt += 1
-                tf_trajectory, phase = self.predictTrajectory(data["voice"], self._getRobotState(), cnt)
+                tf_trajectory, phase, _ = self.predictTrajectory(data["voice"], self._getRobotState(), cnt)
                 r_state              = tf_trajectory[-1,:]
                 # r_state[5] = 0.0 # TODO last angle of rotation?
                 eval_data["trajectory"]["state"].append(r_state.tolist())
@@ -781,7 +782,10 @@ class Simulator(object):
             self.resetRobotArm()
         elif d_in.startswith("t "):
             # self.rm_voice = d_in[2:]
-            self.subtasks = semantic_parser(d_in[2:])
+            # get the scene objects
+            _, _, features = self.predictTrajectory("", self._getRobotState(), 1)
+            print('FEATURES',features)
+            self.subtasks = semantic_parser(d_in[2:], features)
             self.subtask_idx = 0
             self.rm_voice = self.subtasks[self.subtask_idx]
             self.cnt      = 0
@@ -789,7 +793,7 @@ class Simulator(object):
         elif self.rm_voice != "" and  d_in == "":
             # run robot
             self.cnt += 1
-            tf_trajectory, phase = self.predictTrajectory(self.rm_voice, self._getRobotState(), self.cnt)
+            tf_trajectory, phase, features = self.predictTrajectory(self.rm_voice, self._getRobotState(), self.cnt)
             r_state              = tf_trajectory[-1,:]
             # r_state = 6x robot joint position (j1, j2, j3, j4, j5, j6) + gripper position
             # hack: no rotation

@@ -43,23 +43,23 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/irg/irg/LanguagePolicies/ros2/src/policy_translation
+CMAKE_SOURCE_DIR = /home/irg/irg/SemanticPolicies/ros2/src/policy_translation
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/irg/irg/LanguagePolicies/ros2/build/policy_translation
+CMAKE_BINARY_DIR = /home/irg/irg/SemanticPolicies/ros2/build/policy_translation
 
 # Utility rule file for policy_translation.
 
 # Include the progress variables for this target.
 include CMakeFiles/policy_translation.dir/progress.make
 
-CMakeFiles/policy_translation: /home/irg/irg/LanguagePolicies/ros2/src/policy_translation/srv/NetworkPT.srv
+CMakeFiles/policy_translation: /home/irg/irg/SemanticPolicies/ros2/src/policy_translation/srv/NetworkPT.srv
 CMakeFiles/policy_translation: rosidl_cmake/srv/NetworkPT_Request.msg
 CMakeFiles/policy_translation: rosidl_cmake/srv/NetworkPT_Response.msg
-CMakeFiles/policy_translation: /home/irg/irg/LanguagePolicies/ros2/src/policy_translation/srv/TuneNetwork.srv
+CMakeFiles/policy_translation: /home/irg/irg/SemanticPolicies/ros2/src/policy_translation/srv/TuneNetwork.srv
 CMakeFiles/policy_translation: rosidl_cmake/srv/TuneNetwork_Request.msg
 CMakeFiles/policy_translation: rosidl_cmake/srv/TuneNetwork_Response.msg
-CMakeFiles/policy_translation: /home/irg/irg/LanguagePolicies/ros2/src/policy_translation/msg/Dummy.msg
+CMakeFiles/policy_translation: /home/irg/irg/SemanticPolicies/ros2/src/policy_translation/msg/Dummy.msg
 CMakeFiles/policy_translation: /home/irg/ros2_eloquent/install/sensor_msgs/share/sensor_msgs/msg/BatteryState.idl
 CMakeFiles/policy_translation: /home/irg/ros2_eloquent/install/sensor_msgs/share/sensor_msgs/msg/CameraInfo.idl
 CMakeFiles/policy_translation: /home/irg/ros2_eloquent/install/sensor_msgs/share/sensor_msgs/msg/ChannelFloat32.idl
@@ -105,6 +105,6 @@ CMakeFiles/policy_translation.dir/clean:
 .PHONY : CMakeFiles/policy_translation.dir/clean
 
 CMakeFiles/policy_translation.dir/depend:
-	cd /home/irg/irg/LanguagePolicies/ros2/build/policy_translation && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/irg/irg/LanguagePolicies/ros2/src/policy_translation /home/irg/irg/LanguagePolicies/ros2/src/policy_translation /home/irg/irg/LanguagePolicies/ros2/build/policy_translation /home/irg/irg/LanguagePolicies/ros2/build/policy_translation /home/irg/irg/LanguagePolicies/ros2/build/policy_translation/CMakeFiles/policy_translation.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/irg/irg/SemanticPolicies/ros2/build/policy_translation && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/irg/irg/SemanticPolicies/ros2/src/policy_translation /home/irg/irg/SemanticPolicies/ros2/src/policy_translation /home/irg/irg/SemanticPolicies/ros2/build/policy_translation /home/irg/irg/SemanticPolicies/ros2/build/policy_translation /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/policy_translation.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/policy_translation.dir/depend
 
