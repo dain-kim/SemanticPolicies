@@ -688,7 +688,7 @@ class Simulator(object):
                 else:
                     floats += [0.0]
 
-            floats = [-0.6706283735164196, -0.367048866651563, 0.5677358902060654, -0.38444069922215474, -0.5240614358568401, 0.0, -0.005800754313754042, -0.5434291140615598, 0.0]
+            floats = [-0.6706283735164196, -0.367048866651563, 0.5677358902060654, -0.38444069922215474, -0.5240614358568401, 0.0, -0.005800754313754042, -0.6434291140615598, 0.0]
             # floats = [-0.4841615916276253, -0.3829838314703341, -0.05021171096973509, -0.7201993483166631, -0.12716774121561158, 0.0, -0.34769231510157994, -0.6539479616451864, 0.0]
 
 
@@ -772,7 +772,7 @@ class Simulator(object):
         if d_in == 'd':
             self.releaseRobotGrip()
         if d_in == 's':
-            print('current state', self._getRobotState())
+            print('current robot state', self._getRobotState())
             q_prime = np.append(np.deg2rad(DEFAULT_UR5_JOINTS),[0.0])
             q = self._getRobotState()
             error = np.linalg.norm(q - q_prime)
@@ -854,6 +854,8 @@ class Simulator(object):
             error = np.linalg.norm(q - q_prime)
             steps = max(2, int(error*30))
         self._stopRobotMovement()
+        # self._setRobotJoints(np.deg2rad(DEFAULT_UR5_JOINTS))
+        self._setJointVelocityFromTarget(self._getRobotState())
         print('robot arm position reset')
     
     def runManually(self):
