@@ -28,28 +28,28 @@ The CXX compiler identification is GNU, found in "/home/irg/irg/SemanticPolicies
 Determining if the C compiler works passed with the following output:
 Change Dir: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_121cc/fast"
-/usr/bin/make -f CMakeFiles/cmTC_121cc.dir/build.make CMakeFiles/cmTC_121cc.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_f1121/fast"
+/usr/bin/make -f CMakeFiles/cmTC_f1121.dir/build.make CMakeFiles/cmTC_f1121.dir/build
 make[1]: Entering directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_121cc.dir/testCCompiler.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_121cc.dir/testCCompiler.c.o   -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp/testCCompiler.c
-Linking C executable cmTC_121cc
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_121cc.dir/link.txt --verbose=1
-/usr/bin/cc      CMakeFiles/cmTC_121cc.dir/testCCompiler.c.o  -o cmTC_121cc 
+Building C object CMakeFiles/cmTC_f1121.dir/testCCompiler.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_f1121.dir/testCCompiler.c.o   -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTC_f1121
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f1121.dir/link.txt --verbose=1
+/usr/bin/cc      CMakeFiles/cmTC_f1121.dir/testCCompiler.c.o  -o cmTC_f1121 
 make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
 
 
 Detecting C compiler ABI info compiled with the following output:
 Change Dir: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_22fda/fast"
-/usr/bin/make -f CMakeFiles/cmTC_22fda.dir/build.make CMakeFiles/cmTC_22fda.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_5dbc7/fast"
+/usr/bin/make -f CMakeFiles/cmTC_5dbc7.dir/build.make CMakeFiles/cmTC_5dbc7.dir/build
 make[1]: Entering directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_22fda.dir/CMakeCCompilerABI.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_22fda.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.10/Modules/CMakeCCompilerABI.c
-Linking C executable cmTC_22fda
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_22fda.dir/link.txt --verbose=1
-/usr/bin/cc     -v CMakeFiles/cmTC_22fda.dir/CMakeCCompilerABI.c.o  -o cmTC_22fda 
+Building C object CMakeFiles/cmTC_5dbc7.dir/CMakeCCompilerABI.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_5dbc7.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.10/Modules/CMakeCCompilerABI.c
+Linking C executable cmTC_5dbc7
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5dbc7.dir/link.txt --verbose=1
+/usr/bin/cc     -v CMakeFiles/cmTC_5dbc7.dir/CMakeCCompilerABI.c.o  -o cmTC_5dbc7 
 Using built-in specs.
 COLLECT_GCC=/usr/bin/cc
 COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper
@@ -61,9 +61,9 @@ Thread model: posix
 gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04) 
 COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/
 LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_22fda' '-mtune=generic' '-march=x86-64'
- /usr/lib/gcc/x86_64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccKLNYx4.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_22fda /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/7 -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/7/../../.. CMakeFiles/cmTC_22fda.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crtn.o
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_22fda' '-mtune=generic' '-march=x86-64'
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_5dbc7' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccMh5Tjf.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_5dbc7 /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/7 -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/7/../../.. CMakeFiles/cmTC_5dbc7.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_5dbc7' '-mtune=generic' '-march=x86-64'
 make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
 
 
@@ -71,14 +71,14 @@ Parsed C implicit link information from above output:
   link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
   ignore line: [Change Dir: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_22fda/fast"]
-  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_22fda.dir/build.make CMakeFiles/cmTC_22fda.dir/build]
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_5dbc7/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_5dbc7.dir/build.make CMakeFiles/cmTC_5dbc7.dir/build]
   ignore line: [make[1]: Entering directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp']
-  ignore line: [Building C object CMakeFiles/cmTC_22fda.dir/CMakeCCompilerABI.c.o]
-  ignore line: [/usr/bin/cc    -o CMakeFiles/cmTC_22fda.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.10/Modules/CMakeCCompilerABI.c]
-  ignore line: [Linking C executable cmTC_22fda]
-  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_22fda.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/cc     -v CMakeFiles/cmTC_22fda.dir/CMakeCCompilerABI.c.o  -o cmTC_22fda ]
+  ignore line: [Building C object CMakeFiles/cmTC_5dbc7.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/usr/bin/cc    -o CMakeFiles/cmTC_5dbc7.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.10/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTC_5dbc7]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5dbc7.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/cc     -v CMakeFiles/cmTC_5dbc7.dir/CMakeCCompilerABI.c.o  -o cmTC_5dbc7 ]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/cc]
   ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper]
@@ -90,13 +90,13 @@ Parsed C implicit link information from above output:
   ignore line: [gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04) ]
   ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/]
   ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_22fda' '-mtune=generic' '-march=x86-64']
-  link line: [ /usr/lib/gcc/x86_64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccKLNYx4.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_22fda /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/7 -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/7/../../.. CMakeFiles/cmTC_22fda.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crtn.o]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_5dbc7' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccMh5Tjf.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_5dbc7 /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/7 -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/7/../../.. CMakeFiles/cmTC_5dbc7.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crtn.o]
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/collect2] ==> ignore
     arg [-plugin] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so] ==> ignore
     arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper] ==> ignore
-    arg [-plugin-opt=-fresolution=/tmp/ccKLNYx4.res] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccMh5Tjf.res] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
     arg [-plugin-opt=-pass-through=-lc] ==> ignore
@@ -114,7 +114,7 @@ Parsed C implicit link information from above output:
     arg [-znow] ==> ignore
     arg [-zrelro] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_22fda] ==> ignore
+    arg [cmTC_5dbc7] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o] ==> ignore
@@ -126,7 +126,7 @@ Parsed C implicit link information from above output:
     arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
     arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
     arg [-L/usr/lib/gcc/x86_64-linux-gnu/7/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/7/../../..]
-    arg [CMakeFiles/cmTC_22fda.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [CMakeFiles/cmTC_5dbc7.dir/CMakeCCompilerABI.c.o] ==> ignore
     arg [-lgcc] ==> lib [gcc]
     arg [--push-state] ==> ignore
     arg [--as-needed] ==> ignore
@@ -158,14 +158,14 @@ Parsed C implicit link information from above output:
 Detecting C [-std=c11] compiler features compiled with the following output:
 Change Dir: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_cc072/fast"
-/usr/bin/make -f CMakeFiles/cmTC_cc072.dir/build.make CMakeFiles/cmTC_cc072.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_2486e/fast"
+/usr/bin/make -f CMakeFiles/cmTC_2486e.dir/build.make CMakeFiles/cmTC_2486e.dir/build
 make[1]: Entering directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_cc072.dir/feature_tests.c.o
-/usr/bin/cc   -std=c11 -o CMakeFiles/cmTC_cc072.dir/feature_tests.c.o   -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/feature_tests.c
-Linking C executable cmTC_cc072
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cc072.dir/link.txt --verbose=1
-/usr/bin/cc      CMakeFiles/cmTC_cc072.dir/feature_tests.c.o  -o cmTC_cc072 
+Building C object CMakeFiles/cmTC_2486e.dir/feature_tests.c.o
+/usr/bin/cc   -std=c11 -o CMakeFiles/cmTC_2486e.dir/feature_tests.c.o   -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/feature_tests.c
+Linking C executable cmTC_2486e
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2486e.dir/link.txt --verbose=1
+/usr/bin/cc      CMakeFiles/cmTC_2486e.dir/feature_tests.c.o  -o cmTC_2486e 
 make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
 
 
@@ -178,14 +178,14 @@ make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_tra
 Detecting C [-std=c99] compiler features compiled with the following output:
 Change Dir: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_9182e/fast"
-/usr/bin/make -f CMakeFiles/cmTC_9182e.dir/build.make CMakeFiles/cmTC_9182e.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_cd257/fast"
+/usr/bin/make -f CMakeFiles/cmTC_cd257.dir/build.make CMakeFiles/cmTC_cd257.dir/build
 make[1]: Entering directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_9182e.dir/feature_tests.c.o
-/usr/bin/cc   -std=c99 -o CMakeFiles/cmTC_9182e.dir/feature_tests.c.o   -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/feature_tests.c
-Linking C executable cmTC_9182e
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9182e.dir/link.txt --verbose=1
-/usr/bin/cc      CMakeFiles/cmTC_9182e.dir/feature_tests.c.o  -o cmTC_9182e 
+Building C object CMakeFiles/cmTC_cd257.dir/feature_tests.c.o
+/usr/bin/cc   -std=c99 -o CMakeFiles/cmTC_cd257.dir/feature_tests.c.o   -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/feature_tests.c
+Linking C executable cmTC_cd257
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cd257.dir/link.txt --verbose=1
+/usr/bin/cc      CMakeFiles/cmTC_cd257.dir/feature_tests.c.o  -o cmTC_cd257 
 make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
 
 
@@ -198,14 +198,14 @@ make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_tra
 Detecting C [-std=c90] compiler features compiled with the following output:
 Change Dir: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_983e7/fast"
-/usr/bin/make -f CMakeFiles/cmTC_983e7.dir/build.make CMakeFiles/cmTC_983e7.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_5066d/fast"
+/usr/bin/make -f CMakeFiles/cmTC_5066d.dir/build.make CMakeFiles/cmTC_5066d.dir/build
 make[1]: Entering directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_983e7.dir/feature_tests.c.o
-/usr/bin/cc   -std=c90 -o CMakeFiles/cmTC_983e7.dir/feature_tests.c.o   -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/feature_tests.c
-Linking C executable cmTC_983e7
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_983e7.dir/link.txt --verbose=1
-/usr/bin/cc      CMakeFiles/cmTC_983e7.dir/feature_tests.c.o  -o cmTC_983e7 
+Building C object CMakeFiles/cmTC_5066d.dir/feature_tests.c.o
+/usr/bin/cc   -std=c90 -o CMakeFiles/cmTC_5066d.dir/feature_tests.c.o   -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/feature_tests.c
+Linking C executable cmTC_5066d
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5066d.dir/link.txt --verbose=1
+/usr/bin/cc      CMakeFiles/cmTC_5066d.dir/feature_tests.c.o  -o cmTC_5066d 
 make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
 
 
@@ -216,28 +216,28 @@ make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_tra
 Determining if the CXX compiler works passed with the following output:
 Change Dir: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_d01b3/fast"
-/usr/bin/make -f CMakeFiles/cmTC_d01b3.dir/build.make CMakeFiles/cmTC_d01b3.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_bd3bf/fast"
+/usr/bin/make -f CMakeFiles/cmTC_bd3bf.dir/build.make CMakeFiles/cmTC_bd3bf.dir/build
 make[1]: Entering directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_d01b3.dir/testCXXCompiler.cxx.o
-/usr/bin/c++     -o CMakeFiles/cmTC_d01b3.dir/testCXXCompiler.cxx.o -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
-Linking CXX executable cmTC_d01b3
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d01b3.dir/link.txt --verbose=1
-/usr/bin/c++       CMakeFiles/cmTC_d01b3.dir/testCXXCompiler.cxx.o  -o cmTC_d01b3 
+Building CXX object CMakeFiles/cmTC_bd3bf.dir/testCXXCompiler.cxx.o
+/usr/bin/c++     -o CMakeFiles/cmTC_bd3bf.dir/testCXXCompiler.cxx.o -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
+Linking CXX executable cmTC_bd3bf
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bd3bf.dir/link.txt --verbose=1
+/usr/bin/c++       CMakeFiles/cmTC_bd3bf.dir/testCXXCompiler.cxx.o  -o cmTC_bd3bf 
 make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
 
 
 Detecting CXX compiler ABI info compiled with the following output:
 Change Dir: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_4daaa/fast"
-/usr/bin/make -f CMakeFiles/cmTC_4daaa.dir/build.make CMakeFiles/cmTC_4daaa.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_03ceb/fast"
+/usr/bin/make -f CMakeFiles/cmTC_03ceb.dir/build.make CMakeFiles/cmTC_03ceb.dir/build
 make[1]: Entering directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_4daaa.dir/CMakeCXXCompilerABI.cpp.o
-/usr/bin/c++     -o CMakeFiles/cmTC_4daaa.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp
-Linking CXX executable cmTC_4daaa
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_4daaa.dir/link.txt --verbose=1
-/usr/bin/c++      -v CMakeFiles/cmTC_4daaa.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_4daaa 
+Building CXX object CMakeFiles/cmTC_03ceb.dir/CMakeCXXCompilerABI.cpp.o
+/usr/bin/c++     -o CMakeFiles/cmTC_03ceb.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp
+Linking CXX executable cmTC_03ceb
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_03ceb.dir/link.txt --verbose=1
+/usr/bin/c++      -v CMakeFiles/cmTC_03ceb.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_03ceb 
 Using built-in specs.
 COLLECT_GCC=/usr/bin/c++
 COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper
@@ -249,9 +249,9 @@ Thread model: posix
 gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04) 
 COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/
 LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_4daaa' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
- /usr/lib/gcc/x86_64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/cciIESfD.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_4daaa /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/7 -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/7/../../.. CMakeFiles/cmTC_4daaa.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crtn.o
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_4daaa' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_03ceb' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccXgNjM0.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_03ceb /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/7 -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/7/../../.. CMakeFiles/cmTC_03ceb.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_03ceb' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
 make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
 
 
@@ -259,14 +259,14 @@ Parsed CXX implicit link information from above output:
   link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
   ignore line: [Change Dir: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_4daaa/fast"]
-  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_4daaa.dir/build.make CMakeFiles/cmTC_4daaa.dir/build]
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_03ceb/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_03ceb.dir/build.make CMakeFiles/cmTC_03ceb.dir/build]
   ignore line: [make[1]: Entering directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp']
-  ignore line: [Building CXX object CMakeFiles/cmTC_4daaa.dir/CMakeCXXCompilerABI.cpp.o]
-  ignore line: [/usr/bin/c++     -o CMakeFiles/cmTC_4daaa.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp]
-  ignore line: [Linking CXX executable cmTC_4daaa]
-  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_4daaa.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/c++      -v CMakeFiles/cmTC_4daaa.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_4daaa ]
+  ignore line: [Building CXX object CMakeFiles/cmTC_03ceb.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [/usr/bin/c++     -o CMakeFiles/cmTC_03ceb.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: [Linking CXX executable cmTC_03ceb]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_03ceb.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/c++      -v CMakeFiles/cmTC_03ceb.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_03ceb ]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/c++]
   ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper]
@@ -278,13 +278,13 @@ Parsed CXX implicit link information from above output:
   ignore line: [gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04) ]
   ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/]
   ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/7/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/7/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_4daaa' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
-  link line: [ /usr/lib/gcc/x86_64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/cciIESfD.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_4daaa /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/7 -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/7/../../.. CMakeFiles/cmTC_4daaa.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crtn.o]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_03ceb' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-linux-gnu/7/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper -plugin-opt=-fresolution=/tmp/ccXgNjM0.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_03ceb /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/7 -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/7/../../.. CMakeFiles/cmTC_03ceb.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crtn.o]
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/collect2] ==> ignore
     arg [-plugin] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/liblto_plugin.so] ==> ignore
     arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/7/lto-wrapper] ==> ignore
-    arg [-plugin-opt=-fresolution=/tmp/cciIESfD.res] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccXgNjM0.res] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
     arg [-plugin-opt=-pass-through=-lc] ==> ignore
@@ -302,7 +302,7 @@ Parsed CXX implicit link information from above output:
     arg [-znow] ==> ignore
     arg [-zrelro] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_4daaa] ==> ignore
+    arg [cmTC_03ceb] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/crti.o] ==> ignore
     arg [/usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o] ==> ignore
@@ -314,7 +314,7 @@ Parsed CXX implicit link information from above output:
     arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
     arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
     arg [-L/usr/lib/gcc/x86_64-linux-gnu/7/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/7/../../..]
-    arg [CMakeFiles/cmTC_4daaa.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [CMakeFiles/cmTC_03ceb.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
     arg [-lstdc++] ==> lib [stdc++]
     arg [-lm] ==> lib [m]
     arg [-lgcc_s] ==> lib [gcc_s]
@@ -342,14 +342,14 @@ Parsed CXX implicit link information from above output:
 Detecting CXX [-std=c++1z] compiler features compiled with the following output:
 Change Dir: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_62f62/fast"
-/usr/bin/make -f CMakeFiles/cmTC_62f62.dir/build.make CMakeFiles/cmTC_62f62.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_10d89/fast"
+/usr/bin/make -f CMakeFiles/cmTC_10d89.dir/build.make CMakeFiles/cmTC_10d89.dir/build
 make[1]: Entering directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_62f62.dir/feature_tests.cxx.o
-/usr/bin/c++    -std=c++1z -o CMakeFiles/cmTC_62f62.dir/feature_tests.cxx.o -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_62f62
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_62f62.dir/link.txt --verbose=1
-/usr/bin/c++       CMakeFiles/cmTC_62f62.dir/feature_tests.cxx.o  -o cmTC_62f62 
+Building CXX object CMakeFiles/cmTC_10d89.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++1z -o CMakeFiles/cmTC_10d89.dir/feature_tests.cxx.o -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_10d89
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_10d89.dir/link.txt --verbose=1
+/usr/bin/c++       CMakeFiles/cmTC_10d89.dir/feature_tests.cxx.o  -o cmTC_10d89 
 make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
 
 
@@ -415,14 +415,14 @@ make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_tra
 Detecting CXX [-std=c++14] compiler features compiled with the following output:
 Change Dir: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_cc29c/fast"
-/usr/bin/make -f CMakeFiles/cmTC_cc29c.dir/build.make CMakeFiles/cmTC_cc29c.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_9f6f3/fast"
+/usr/bin/make -f CMakeFiles/cmTC_9f6f3.dir/build.make CMakeFiles/cmTC_9f6f3.dir/build
 make[1]: Entering directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_cc29c.dir/feature_tests.cxx.o
-/usr/bin/c++    -std=c++14 -o CMakeFiles/cmTC_cc29c.dir/feature_tests.cxx.o -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_cc29c
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cc29c.dir/link.txt --verbose=1
-/usr/bin/c++       CMakeFiles/cmTC_cc29c.dir/feature_tests.cxx.o  -o cmTC_cc29c 
+Building CXX object CMakeFiles/cmTC_9f6f3.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++14 -o CMakeFiles/cmTC_9f6f3.dir/feature_tests.cxx.o -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_9f6f3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9f6f3.dir/link.txt --verbose=1
+/usr/bin/c++       CMakeFiles/cmTC_9f6f3.dir/feature_tests.cxx.o  -o cmTC_9f6f3 
 make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
 
 
@@ -488,14 +488,14 @@ make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_tra
 Detecting CXX [-std=c++11] compiler features compiled with the following output:
 Change Dir: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_718fa/fast"
-/usr/bin/make -f CMakeFiles/cmTC_718fa.dir/build.make CMakeFiles/cmTC_718fa.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_e3c0e/fast"
+/usr/bin/make -f CMakeFiles/cmTC_e3c0e.dir/build.make CMakeFiles/cmTC_e3c0e.dir/build
 make[1]: Entering directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_718fa.dir/feature_tests.cxx.o
-/usr/bin/c++    -std=c++11 -o CMakeFiles/cmTC_718fa.dir/feature_tests.cxx.o -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_718fa
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_718fa.dir/link.txt --verbose=1
-/usr/bin/c++       CMakeFiles/cmTC_718fa.dir/feature_tests.cxx.o  -o cmTC_718fa 
+Building CXX object CMakeFiles/cmTC_e3c0e.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++11 -o CMakeFiles/cmTC_e3c0e.dir/feature_tests.cxx.o -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_e3c0e
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e3c0e.dir/link.txt --verbose=1
+/usr/bin/c++       CMakeFiles/cmTC_e3c0e.dir/feature_tests.cxx.o  -o cmTC_e3c0e 
 make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
 
 
@@ -561,14 +561,14 @@ make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_tra
 Detecting CXX [-std=c++98] compiler features compiled with the following output:
 Change Dir: /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_2752a/fast"
-/usr/bin/make -f CMakeFiles/cmTC_2752a.dir/build.make CMakeFiles/cmTC_2752a.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_5648d/fast"
+/usr/bin/make -f CMakeFiles/cmTC_5648d.dir/build.make CMakeFiles/cmTC_5648d.dir/build
 make[1]: Entering directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_2752a.dir/feature_tests.cxx.o
-/usr/bin/c++    -std=c++98 -o CMakeFiles/cmTC_2752a.dir/feature_tests.cxx.o -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_2752a
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2752a.dir/link.txt --verbose=1
-/usr/bin/c++       CMakeFiles/cmTC_2752a.dir/feature_tests.cxx.o  -o cmTC_2752a 
+Building CXX object CMakeFiles/cmTC_5648d.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++98 -o CMakeFiles/cmTC_5648d.dir/feature_tests.cxx.o -c /home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_5648d
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5648d.dir/link.txt --verbose=1
+/usr/bin/c++       CMakeFiles/cmTC_5648d.dir/feature_tests.cxx.o  -o cmTC_5648d 
 make[1]: Leaving directory '/home/irg/irg/SemanticPolicies/ros2/build/policy_translation/CMakeFiles/CMakeTmp'
 
 

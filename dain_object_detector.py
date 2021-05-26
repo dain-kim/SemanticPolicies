@@ -24,3 +24,8 @@ def show_bounding_boxes(image, boxes, classes, scores):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
+def show_image(image):
+    print('displaying image')
+    cv2.imshow("image", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()

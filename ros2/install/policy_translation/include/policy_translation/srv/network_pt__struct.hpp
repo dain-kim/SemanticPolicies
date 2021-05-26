@@ -242,7 +242,7 @@ struct NetworkPT_Response_
     float;
   _phase_type phase;
   using _features_type =
-    std::vector<int32_t, typename ContainerAllocator::template rebind<int32_t>::other>;
+    std::vector<float, typename ContainerAllocator::template rebind<float>::other>;
   _features_type features;
 
   // setters for named parameter idiom
@@ -277,7 +277,7 @@ struct NetworkPT_Response_
     return *this;
   }
   Type & set__features(
-    const std::vector<int32_t, typename ContainerAllocator::template rebind<int32_t>::other> & _arg)
+    const std::vector<float, typename ContainerAllocator::template rebind<float>::other> & _arg)
   {
     this->features = _arg;
     return *this;

@@ -231,7 +231,7 @@ class NetworkService():
             task_embedding = self.subtask_embeddings[self.subtask_idx]
         except:
             # print('You shouldn\'t be here')
-            return ([], [], 0, [], 0.0, [int(i) for i in self.features.T[0]])
+            return ([], [], 0, [], 0.0, self.features.flatten().tolist())
         # call the model with the current embedding
         input_data = (
             # tf.convert_to_tensor(np.tile([self.language],[250, 1]), dtype=tf.int64), ## Original language input in tensor form
@@ -239,13 +239,12 @@ class NetworkService():
             tf.convert_to_tensor(np.tile([self.features],[250, 1, 1]), dtype=tf.float32),
             tf.convert_to_tensor(np.tile([robot],[250, 1, 1]), dtype=tf.float32)
         )
-        print("OBJECTS DETECTED (classes and boxes)")
-        print(self.features)
-        print(self.features.T[0])
-        print("TASK EMBEDDING")
-        print('task embedding\n', task_embedding[0])
+        # print("OBJECTS DETECTED (classes and boxes)")
+        # print(self.features)
+        # print("TASK EMBEDDING")
+        # print('task embedding\n', task_embedding[0])
 
-        print("Before the new call")
+        # print("Before the new call")
         s = time.time()
         generated, (atn, dmp_dt, phase, weights) = model.new_call(input_data, task_embedding, training=tf.constant(False), use_dropout=tf.constant(True))
 
@@ -264,7 +263,7 @@ class NetworkService():
             phase_value = 1
             subtask_phase = 1
             self.subtask_steps[self.subtask_idx] = 101
-            print("Forcing pouring rotation to stop")            
+            print("Forcing pouring rotation to stop")
 
         # determine if subtask is complete
         # if subtask is complete:
@@ -308,7 +307,7 @@ class NetworkService():
 
         
         self.req_step += 1
-        return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), float(phase_value), [int(i) for i in self.features.T[0]])
+        return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), float(phase_value), self.features.flatten().tolist())
     
     def idToText(self, id):
         names = ["", "Yellow Small Round", "Red Small Round", "Green Small Round", "Blue Small Round", "Pink Small Round",

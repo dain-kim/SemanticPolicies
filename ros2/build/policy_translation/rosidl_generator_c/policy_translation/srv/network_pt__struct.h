@@ -64,7 +64,7 @@ typedef struct policy_translation__srv__NetworkPT_Response
   int32_t timesteps;
   rosidl_generator_c__float__Sequence weights;
   float phase;
-  rosidl_generator_c__int32__Sequence features;
+  rosidl_generator_c__float__Sequence features;
 } policy_translation__srv__NetworkPT_Response;
 
 // Struct for a sequence of policy_translation__srv__NetworkPT_Response.

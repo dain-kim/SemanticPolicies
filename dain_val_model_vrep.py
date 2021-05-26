@@ -22,6 +22,8 @@ import os
 import matplotlib.pyplot as plt
 from PIL import Image
 from semantic_parser import semantic_parser
+import time
+from dain_object_detector import show_image
 
 # Default robot position. You don't need to change this
 DEFAULT_UR5_JOINTS  = [105.0, -30.0, 120.0, 90.0, 60.0, 90.0]
@@ -31,9 +33,9 @@ HEADLESS            = False
 USE_SHAPE_SIZE      = True
 # Run on the test data, or start the simulator in manual mode 
 # (manual mode will allow you to generate environments and type in your own commands)
-RUN_ON_TEST_DATA    = True
+RUN_ON_TEST_DATA    = False
 # How many of the 100 test-data do you want to test?
-# NUM_TESTED_DATA     = 10
+NUM_TESTED_DATA     = 1
 # Where to find the normailization?
 NORM_PATH           = "../GDrive/normalization_v2.pkl"
 # Where to find the VRep scene file. This has to be an absolute path. 
@@ -248,6 +250,7 @@ class Simulator(object):
         trajectory = self.restoreValues(trajectory, norm[0,:], norm[1,:])
         phase      = float(result.phase)
         features   = result.features
+        features = np.reshape(features, (6,5))
         return trajectory, phase, features
     
     def normalize(self, value, v_min, v_max):
@@ -395,10 +398,12 @@ class Simulator(object):
         return data
     
     def valSorting(self, files, feedback=True):
-        successful = 0
+        pick_successful = 0
+        place_successful = 0
         val_data    = {}
         nn_trajectory  = []
         ro_trajectory  = []
+        imgs = []
         for fid, fn in enumerate(files):
             print("Sorting Run {}/{}".format(fid, len(files)))
             eval_data = {}
@@ -417,7 +422,8 @@ class Simulator(object):
             eval_data["trajectory"]["gt"] = gt_trajectory.tolist()
 
             _, _, features = self.predictTrajectory("", self._getRobotState(), 1)
-            subtasks = semantic_parser(data["voice"], features)
+            feature_ids = [int(i) for i in features.T[0]]
+            subtasks = semantic_parser(data["voice"], feature_ids)
             subtask_idx = 0
             rm_voice = subtasks[subtask_idx]
 
@@ -448,13 +454,24 @@ class Simulator(object):
                     grasped_obj = self._graspedObject()[0]
                     if grasped_obj > 0:
                         grabbed_cup = CUP_ID_TO_NAME[self._mapObjectIDs(grasped_obj)]
-                        print('subtask was',rm_voice)
-                        print('robot grabbed', grabbed_cup)
+                        # print('subtask was',rm_voice)
+                        # print('robot grabbed', grabbed_cup)
                         if self._correctGrab(rm_voice, grabbed_cup):
                             print('successfully grabbed the right cup')
-                            successful += 1
+                            pick_successful += 1
                 
-                    if 'pour' in subtasks[subtask_idx]:
+                    # check if robot placed cup in the correct bin
+                    if 'pour' in rm_voice:
+                        print('HERE')
+                        print('robot pos', self._getRobotState())
+                        print('features', features)
+                        print('grabbed obj', self._mapObjectIDs(self._graspedObject()[0]))
+                        img = self._getCameraImage()
+                        print('img', img.shape)
+                        # cv2.imwrite(f"sort1_{round(time.time())}", img)
+                        imgs.append(img)
+                        # cv2.imshow('End Scene',img)
+                        # cv2.waitKey(0)
                         self._releaseObject()
                         self.resetRobotArm()
                     self._stopRobotMovement()
@@ -484,7 +501,7 @@ class Simulator(object):
             val_data[data["name"]] = eval_data
             eval_data["grab_success_rate"] = 0. # TODO update this
             
-        return successful, val_data
+        return pick_successful, val_data, imgs
 
     def valPhase1(self, files, feedback=True):
         successfull = 0
@@ -622,16 +639,16 @@ class Simulator(object):
 
     #     with open("val_result.json", "w") as fh:
     #         json.dump(data, fh)
-    def evalDirect(self):
+    def evalDirect(self, runs):
         # files = glob.glob("../GDrive/dain/testdata/*_1.json")
-        files = [f"kit_{i}.json" for i in range(1,11)]
+        files = [f"sort_1.json"]
         self.node.get_logger().info("Using data directory with {} files".format(len(files)))
         # files = files[:runs]
         # files = [f[:-6] for f in files]
         self.node.get_logger().info("Running validation on {} files".format(len(files)))
 
         data = {}
-        s_p1, e_data        = self.valSorting(files)
+        s_p1, e_data, imgs        = self.valSorting(files)
         data["phase_1"]     = e_data
         # s_p2, e_data        = self.valPhase2(files)
         # data["phase_2"]     = e_data
@@ -639,19 +656,22 @@ class Simulator(object):
         self.node.get_logger().info("Testing Sorting: {}/{} ({:.1f}%)".format(s_p1,  runs, 100.0 * float(s_p1)/float(runs)))
         # self.node.get_logger().info("Testing Kitting: {}/{} ({:.1f}%)".format(s_p2,  runs, 100.0 * float(s_p2)/float(runs)))
 
-        p1_names = data["phase_1"].keys()
-        # p2_names = data["phase_2"].keys()
-        # names = [n for n in p1_names if n in p2_names]
-        names = [n for n in p1_names]
-        c_p2  = 0
-        for n in names:
-            if data["phase_1"][n]["success"]:
-                c_p2  += 1
+        # TODO
+        # p1_names = data["phase_1"].keys()
+        # # p2_names = data["phase_2"].keys()
+        # # names = [n for n in p1_names if n in p2_names]
+        # names = [n for n in p1_names]
+        # c_p2  = 0
+        # for n in names:
+        #     if data["phase_1"][n]["success"]:
+        #         c_p2  += 1
 
-        self.node.get_logger().info("Whole Task: {}/{} ({:.1f}%)".format(c_p2,  len(names), 100.0 * float(c_p2)  / float(len(names))))
+        # self.node.get_logger().info("Whole Task: {}/{} ({:.1f}%)".format(c_p2,  len(names), 100.0 * float(c_p2)  / float(len(names))))
 
         with open("val_result.json", "w") as fh:
             json.dump(data, fh)
+        
+        return imgs
     
     def _generateEnvironment(self):
         def genPosition(prev):
@@ -790,7 +810,7 @@ class Simulator(object):
                     floats += [0.0]
 
             # floats = [-0.6706283735164196, -0.367048866651563, 0.5677358902060654, -0.38444069922215474, -0.5240614358568401, 0.0, -0.005800754313754042, -0.5434291140615598, 0.0]
-            floats = [-0.4841615916276253, -0.3829838314703341, -0.05021171096973509, -0.7201993483166631, -0.12716774121561158, 0.0, -0.34769231510157994, -0.6539479616451864, 0.0]
+            floats = [-0.4841615916276253, -0.3829838314703341, -0.05021171096973509, -0.7201993483166631, -0.00716774121561158, 0.0, -0.34769231510157994, -0.6539479616451864, 0.0]
 
 
 
@@ -811,7 +831,7 @@ class Simulator(object):
         # Sim 4: several cups and several bins
         # "put all the red cups in the blue bin"
         elif idx == "4":
-            ints = [2,3,1,2,1,2,4]
+            ints = [2,3,1,2,1,3,4]
             floats = []
             prev   = []
             for i in range(5):
@@ -821,6 +841,28 @@ class Simulator(object):
                     floats += [np.random.uniform(-math.pi/4.0,  math.pi/4.0)]
                 else:
                     floats += [0.0]
+            # floats = [-0.6195587892326153, -0.27958541999686426, -0.5158047614218091, 0.23493611762502653, -0.6759613027633606, 0.005197504389217067, -0.48792603175619886, -0.5265215716212565, 0.0, -0.37264993848291743, -0.8466030247075923, 0.0, -0.5827080589449817, -0.033880902918536515, 0.0]
+            floats = [-0.8486552682267293, 0.03691380392628727, 0.454911799489471, 
+                      -0.6829666818647918, -0.34188501757644943, -0.2013484777087384, 
+                      -0.2271148259848611, -0.6246002557744265, 0.0, 
+                      -0.39214640134532, 0.3494459948857429, 0.0, 
+                      0.05249601319387964, -0.5748357248031177, 0.0]
+            print(ints)
+            print(floats)
+        
+        elif idx == "5":
+            ints = [2,3,1,2,1,3,4]
+            floats = []
+            prev   = []
+            for i in range(5):
+                prev.append(genPosition(prev))
+                floats += prev[-1]
+                if i < ints[0]:
+                    floats += [np.random.uniform(-math.pi/4.0,  math.pi/4.0)]
+                else:
+                    floats += [0.0]
+            print(ints)
+            print(floats)
 
         
         self._createEnvironment(ints, floats)
@@ -841,7 +883,7 @@ class Simulator(object):
             self.rm_voice     = ""
             self.last_gripper = 0.0
             self._generateEnvironment()
-        if d_in in ("0", "1", "2", "3", "4"):
+        if d_in in ("0", "1", "2", "3", "4", "5"):
             self.rm_voice     = ""
             self.last_gripper = 0.0
             self._generateSetEnvironment(d_in)
@@ -866,8 +908,8 @@ class Simulator(object):
             # self.rm_voice = d_in[2:]
             # get the scene objects
             _, _, features = self.predictTrajectory("", self._getRobotState(), 1)
-            print('FEATURES',features)
-            self.subtasks = semantic_parser(d_in[2:], features)
+            feature_ids = [int(i) for i in features.T[0]]
+            self.subtasks = semantic_parser(d_in[2:], feature_ids)
             self.subtask_idx = 0
             self.rm_voice = self.subtasks[self.subtask_idx]
             self.cnt      = 0
@@ -960,7 +1002,12 @@ class Simulator(object):
 if __name__ == "__main__":
     sim = Simulator()
     if RUN_ON_TEST_DATA:
-        sim.evalDirect()
+        imgs = sim.evalDirect(runs=NUM_TESTED_DATA)
+        # for i,img in enumerate(imgs):
+            # cv2.imwrite(f"img_{i}.png", img)
+            # show_image(img)
+            # cv2.imshow('img', img)
+            # cv2.waitKey(0)
     else:
         sim.runManually()
     sim.shutdown()

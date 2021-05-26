@@ -294,7 +294,7 @@ class NetworkPT_Response(metaclass=Metaclass_NetworkPT_Response):
         'timesteps': 'int32',
         'weights': 'sequence<float>',
         'phase': 'float',
-        'features': 'sequence<int32>',
+        'features': 'sequence<float>',
     }
 
     SLOT_TYPES = (
@@ -303,7 +303,7 @@ class NetworkPT_Response(metaclass=Metaclass_NetworkPT_Response):
         rosidl_parser.definition.BasicType('int32'),  # noqa: E501
         rosidl_parser.definition.UnboundedSequence(rosidl_parser.definition.BasicType('float')),  # noqa: E501
         rosidl_parser.definition.BasicType('float'),  # noqa: E501
-        rosidl_parser.definition.UnboundedSequence(rosidl_parser.definition.BasicType('int32')),  # noqa: E501
+        rosidl_parser.definition.UnboundedSequence(rosidl_parser.definition.BasicType('float')),  # noqa: E501
     )
 
     def __init__(self, **kwargs):
@@ -315,7 +315,7 @@ class NetworkPT_Response(metaclass=Metaclass_NetworkPT_Response):
         self.timesteps = kwargs.get('timesteps', int())
         self.weights = array.array('f', kwargs.get('weights', []))
         self.phase = kwargs.get('phase', float())
-        self.features = array.array('i', kwargs.get('features', []))
+        self.features = array.array('f', kwargs.get('features', []))
 
     def __repr__(self):
         typename = self.__class__.__module__.split('.')
@@ -485,8 +485,8 @@ class NetworkPT_Response(metaclass=Metaclass_NetworkPT_Response):
     @features.setter
     def features(self, value):
         if isinstance(value, array.array):
-            assert value.typecode == 'i', \
-                "The 'features' array.array() must have the type code of 'i'"
+            assert value.typecode == 'f', \
+                "The 'features' array.array() must have the type code of 'f'"
             self._features = value
             return
         if __debug__:
@@ -500,10 +500,10 @@ class NetworkPT_Response(metaclass=Metaclass_NetworkPT_Response):
                   isinstance(value, UserList)) and
                  not isinstance(value, str) and
                  not isinstance(value, UserString) and
-                 all(isinstance(v, int) for v in value) and
-                 all(val >= -2147483648 and val < 2147483648 for val in value)), \
-                "The 'features' field must be a set or sequence and each value of type 'int' and each integer in [-2147483648, 2147483647]"
-        self._features = array.array('i', value)
+                 all(isinstance(v, float) for v in value) and
+                 True), \
+                "The 'features' field must be a set or sequence and each value of type 'float'"
+        self._features = array.array('f', value)
 
 
 class Metaclass_NetworkPT(type):

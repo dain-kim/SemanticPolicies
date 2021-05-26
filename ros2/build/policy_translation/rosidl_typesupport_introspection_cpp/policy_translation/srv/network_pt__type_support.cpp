@@ -324,28 +324,28 @@ void resize_function__NetworkPT_Response__weights(void * untyped_member, size_t 
 
 size_t size_function__NetworkPT_Response__features(const void * untyped_member)
 {
-  const auto * member = reinterpret_cast<const std::vector<int32_t> *>(untyped_member);
+  const auto * member = reinterpret_cast<const std::vector<float> *>(untyped_member);
   return member->size();
 }
 
 const void * get_const_function__NetworkPT_Response__features(const void * untyped_member, size_t index)
 {
   const auto & member =
-    *reinterpret_cast<const std::vector<int32_t> *>(untyped_member);
+    *reinterpret_cast<const std::vector<float> *>(untyped_member);
   return &member[index];
 }
 
 void * get_function__NetworkPT_Response__features(void * untyped_member, size_t index)
 {
   auto & member =
-    *reinterpret_cast<std::vector<int32_t> *>(untyped_member);
+    *reinterpret_cast<std::vector<float> *>(untyped_member);
   return &member[index];
 }
 
 void resize_function__NetworkPT_Response__features(void * untyped_member, size_t size)
 {
   auto * member =
-    reinterpret_cast<std::vector<int32_t> *>(untyped_member);
+    reinterpret_cast<std::vector<float> *>(untyped_member);
   member->resize(size);
 }
 
@@ -427,7 +427,7 @@ static const ::rosidl_typesupport_introspection_cpp::MessageMember NetworkPT_Res
   },
   {
     "features",  // name
-    ::rosidl_typesupport_introspection_cpp::ROS_TYPE_INT32,  // type
+    ::rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT,  // type
     0,  // upper bound of string
     nullptr,  // members of sub message
     true,  // is array

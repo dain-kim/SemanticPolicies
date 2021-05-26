@@ -507,9 +507,9 @@ static bool _NetworkPT_Response__cdr_deserialize(
     cdr >> cdrSize;
     size_t size = static_cast<size_t>(cdrSize);
     if (ros_message->features.data) {
-      rosidl_generator_c__int32__Sequence__fini(&ros_message->features);
+      rosidl_generator_c__float__Sequence__fini(&ros_message->features);
     }
-    if (!rosidl_generator_c__int32__Sequence__init(&ros_message->features, size)) {
+    if (!rosidl_generator_c__float__Sequence__init(&ros_message->features, size)) {
       return "failed to create array for field 'features'";
     }
     auto array_ptr = ros_message->features.data;

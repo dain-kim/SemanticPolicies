@@ -23,7 +23,7 @@ def pattern_finder(tags_curr, pattern, pattern_name):
 num_to_int = {'one':1, 'two':2, 'three':3, 'four':4, 'five':5, 'six':6}
 cup_colormap = {'red':21, 'green':22, 'blue':23}
 
-def semantic_parser(sentence, features=[]):
+def semantic_parser(sentence, feature_ids=[]):
     # manually override tensor input at initialization
     if type(sentence) != str:
         return []
@@ -78,7 +78,7 @@ def semantic_parser(sentence, features=[]):
                     color_idx = tree[subtree_idx].index('JJ')
                     color = tokens[get_abs_idx(tree,[subtree_idx,color_idx])]
                     obj_idx = cup_colormap[color]
-                    count = features.count(obj_idx)
+                    count = feature_ids.count(obj_idx)
                     for i in range(count):
                         if obj_l[1] == 'the':
                             subtask = ' '.join(['pick', 'up'] + obj_l[1:-1] + ['cup'])
@@ -87,7 +87,7 @@ def semantic_parser(sentence, features=[]):
                         subtasks.append(subtask)
                 # if color not specified, all the cups in the scene
                 else:
-                    count = sum([features.count(i) for i in [21,22,23]])
+                    count = sum([feature_ids.count(i) for i in [21,22,23]])
                     for i in range(count):
                         subtask = ' '.join(['pick', 'up', 'the', 'cup'])
                         subtasks.append(subtask)

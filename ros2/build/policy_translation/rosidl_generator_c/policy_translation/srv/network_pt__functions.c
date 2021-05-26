@@ -200,7 +200,7 @@ policy_translation__srv__NetworkPT_Response__init(policy_translation__srv__Netwo
   }
   // phase
   // features
-  if (!rosidl_generator_c__int32__Sequence__init(&msg->features, 0)) {
+  if (!rosidl_generator_c__float__Sequence__init(&msg->features, 0)) {
     policy_translation__srv__NetworkPT_Response__fini(msg);
     return false;
   }
@@ -222,7 +222,7 @@ policy_translation__srv__NetworkPT_Response__fini(policy_translation__srv__Netwo
   rosidl_generator_c__float__Sequence__fini(&msg->weights);
   // phase
   // features
-  rosidl_generator_c__int32__Sequence__fini(&msg->features);
+  rosidl_generator_c__float__Sequence__fini(&msg->features);
 }
 
 policy_translation__srv__NetworkPT_Response *

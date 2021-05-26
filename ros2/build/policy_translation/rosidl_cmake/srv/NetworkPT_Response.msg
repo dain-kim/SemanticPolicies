@@ -4,4 +4,4 @@ float32[] confidence
 int32 timesteps
 float32[] weights
 float32 phase
-int32[] features
+float32[] features

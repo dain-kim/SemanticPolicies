@@ -480,13 +480,13 @@ bool policy_translation__srv__network_pt__response__convert_from_py(PyObject * _
       Py_DECREF(field);
       return false;
     }
-    if (!rosidl_generator_c__int32__Sequence__init(&(ros_message->features), size)) {
-      PyErr_SetString(PyExc_RuntimeError, "unable to create int32__Sequence ros_message");
+    if (!rosidl_generator_c__float__Sequence__init(&(ros_message->features), size)) {
+      PyErr_SetString(PyExc_RuntimeError, "unable to create float__Sequence ros_message");
       Py_DECREF(seq_field);
       Py_DECREF(field);
       return false;
     }
-    int32_t * dest = ros_message->features.data;
+    float * dest = ros_message->features.data;
     for (Py_ssize_t i = 0; i < size; ++i) {
       PyObject * item = PySequence_Fast_GET_ITEM(seq_field, i);
       if (!item) {
@@ -494,9 +494,9 @@ bool policy_translation__srv__network_pt__response__convert_from_py(PyObject * _
         Py_DECREF(field);
         return false;
       }
-      assert(PyLong_Check(item));
-      int32_t tmp = (int32_t)PyLong_AsLong(item);
-      memcpy(&dest[i], &tmp, sizeof(int32_t));
+      assert(PyFloat_Check(item));
+      float tmp = (float)PyFloat_AS_DOUBLE(item);
+      memcpy(&dest[i], &tmp, sizeof(float));
     }
     Py_DECREF(seq_field);
     Py_DECREF(field);
@@ -730,7 +730,7 @@ PyObject * policy_translation__srv__network_pt__response__convert_to_py(void * r
     assert(itemsize_attr != NULL);
     size_t itemsize = PyLong_AsSize_t(itemsize_attr);
     Py_DECREF(itemsize_attr);
-    if (itemsize != sizeof(int32_t)) {
+    if (itemsize != sizeof(float)) {
       PyErr_SetString(PyExc_RuntimeError, "itemsize doesn't match expectation");
       Py_DECREF(field);
       return NULL;
@@ -759,8 +759,8 @@ PyObject * policy_translation__srv__network_pt__response__convert_to_py(void * r
       // populating the array.array using the frombytes method
       PyObject * frombytes = PyObject_GetAttrString(field, "frombytes");
       assert(frombytes != NULL);
-      int32_t * src = &(ros_message->features.data[0]);
-      PyObject * data = PyBytes_FromStringAndSize((const char *)src, ros_message->features.size * sizeof(int32_t));
+      float * src = &(ros_message->features.data[0]);
+      PyObject * data = PyBytes_FromStringAndSize((const char *)src, ros_message->features.size * sizeof(float));
       assert(data != NULL);
       PyObject * ret = PyObject_CallFunctionObjArgs(frombytes, data, NULL);
       Py_DECREF(data);
