@@ -32,7 +32,7 @@ DEFAULT_UR5_JOINTS  = [105.0, -30.0, 120.0, 90.0, 60.0, 90.0]
 HEADLESS            = False
 # Run on the test data, or start the simulator in manual mode 
 # (manual mode will allow you to generate environments and type in your own commands)
-RUN_ON_TEST_DATA    = True
+RUN_ON_TEST_DATA    = False
 # How many of the 100 test-data do you want to test?
 NUM_TESTED_DATA     = 1
 # Where to find the normailization?
@@ -43,8 +43,8 @@ NORM_PATH           = "../GDrive/normalization_v2.pkl"
 VREP_SCENE          = "../GDrive/testscene2.ttt"
 VREP_SCENE          = os.getcwd() + "/" + VREP_SCENE
 # Data collection vars
-COLLECT_DATA        = False
-NUM_SAMPLES         = 2
+COLLECT_DATA        = True
+NUM_SAMPLES         = 100
 DATA_PATH           = "./eval_data/"
 # CUP_ID_TO_NAME      = {21: 'red cup', 22: 'green cup', 23: 'blue cup'}
 # BIN_ID_TO_NAME      = {16: 'yellow dish', 17: 'red dish', 18: 'green dish', 19: 'blue dish', 20: 'pink dish'}
