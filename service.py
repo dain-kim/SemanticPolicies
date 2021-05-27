@@ -172,7 +172,6 @@ class NetworkService():
         self.As = []  # this stores the output of the attention network (atn)
         self.subtask_steps = []  # this is for keeping track of how long each subtask took
         self.subtask_idx = 0
-        self.raw_a = np.array([])
         # self._next = False
         # self.cur_subtask = None
         # self.subtask_attn = None
@@ -212,10 +211,12 @@ class NetworkService():
             self.features = np.concatenate((np.expand_dims(classes,1), boxes), axis=1)
 
             self.history  = []
+            self.raw_a = np.array([])
+
 
         self.history.append(list(req.robot)) 
 
-        robot           = np.asarray(self.history, dtype=np.float32)
+        robot           = np.asarray(self.history, dtype=np.float32)        
         ### pseudocode
         # if first time calling the command,
         if self.first_call:
@@ -304,7 +305,7 @@ class NetworkService():
                 np.save("gen_trajectory", gen_trajectory)            
 
                 self.sfp_history = []
-                self.reset_state()
+                # self.reset_state()
 
         
         self.req_step += 1
@@ -357,12 +358,12 @@ class NetworkService():
             tokenized = self.tokenize_subtask(language)
             self.tokenized_subtasks.append(tokenized)
             sentence_embedding, a = model.get_attention(tokenized, features, training=training)
-            print('RAW A', a[0])
+            # print('RAW A', a[0])
             self.raw_a = a[0].numpy()
             
             # task object selector
             a = tf.numpy_function(random_choose, [a], tf.float32)
-            print('a\n', a[0])
+            # print('a\n', a[0])
             a = tf.convert_to_tensor(a, dtype=tf.float32)
 
             self.As.append(a)
