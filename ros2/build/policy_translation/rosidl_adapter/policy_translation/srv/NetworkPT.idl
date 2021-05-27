@@ -29,6 +29,8 @@ module policy_translation {
       float phase;
 
       sequence<float> features;
+
+      sequence<float> attn;
     };
   };
 };

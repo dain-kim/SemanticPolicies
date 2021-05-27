@@ -349,7 +349,34 @@ void resize_function__NetworkPT_Response__features(void * untyped_member, size_t
   member->resize(size);
 }
 
-static const ::rosidl_typesupport_introspection_cpp::MessageMember NetworkPT_Response_message_member_array[6] = {
+size_t size_function__NetworkPT_Response__attn(const void * untyped_member)
+{
+  const auto * member = reinterpret_cast<const std::vector<float> *>(untyped_member);
+  return member->size();
+}
+
+const void * get_const_function__NetworkPT_Response__attn(const void * untyped_member, size_t index)
+{
+  const auto & member =
+    *reinterpret_cast<const std::vector<float> *>(untyped_member);
+  return &member[index];
+}
+
+void * get_function__NetworkPT_Response__attn(void * untyped_member, size_t index)
+{
+  auto & member =
+    *reinterpret_cast<std::vector<float> *>(untyped_member);
+  return &member[index];
+}
+
+void resize_function__NetworkPT_Response__attn(void * untyped_member, size_t size)
+{
+  auto * member =
+    reinterpret_cast<std::vector<float> *>(untyped_member);
+  member->resize(size);
+}
+
+static const ::rosidl_typesupport_introspection_cpp::MessageMember NetworkPT_Response_message_member_array[7] = {
   {
     "trajectory",  // name
     ::rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT,  // type
@@ -439,13 +466,28 @@ static const ::rosidl_typesupport_introspection_cpp::MessageMember NetworkPT_Res
     get_const_function__NetworkPT_Response__features,  // get_const(index) function pointer
     get_function__NetworkPT_Response__features,  // get(index) function pointer
     resize_function__NetworkPT_Response__features  // resize(index) function pointer
+  },
+  {
+    "attn",  // name
+    ::rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT,  // type
+    0,  // upper bound of string
+    nullptr,  // members of sub message
+    true,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(policy_translation::srv::NetworkPT_Response, attn),  // bytes offset in struct
+    nullptr,  // default value
+    size_function__NetworkPT_Response__attn,  // size() function pointer
+    get_const_function__NetworkPT_Response__attn,  // get_const(index) function pointer
+    get_function__NetworkPT_Response__attn,  // get(index) function pointer
+    resize_function__NetworkPT_Response__attn  // resize(index) function pointer
   }
 };
 
 static const ::rosidl_typesupport_introspection_cpp::MessageMembers NetworkPT_Response_message_members = {
   "policy_translation::srv",  // message namespace
   "NetworkPT_Response",  // message name
-  6,  // number of fields
+  7,  // number of fields
   sizeof(policy_translation::srv::NetworkPT_Response),
   NetworkPT_Response_message_member_array,  // message members
   NetworkPT_Response_init_function,  // function to initialize message memory (memory has to be allocated)

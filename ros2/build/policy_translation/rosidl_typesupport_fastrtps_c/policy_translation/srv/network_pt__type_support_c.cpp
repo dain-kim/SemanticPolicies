@@ -374,9 +374,9 @@ extern "C"
 #endif
 
 // already included above
-// #include "rosidl_generator_c/primitives_sequence.h"  // confidence, features, trajectory, weights
+// #include "rosidl_generator_c/primitives_sequence.h"  // attn, confidence, features, trajectory, weights
 // already included above
-// #include "rosidl_generator_c/primitives_sequence_functions.h"  // confidence, features, trajectory, weights
+// #include "rosidl_generator_c/primitives_sequence_functions.h"  // attn, confidence, features, trajectory, weights
 
 // forward declare type support functions
 
@@ -430,6 +430,14 @@ static bool _NetworkPT_Response__cdr_serialize(
   {
     size_t size = ros_message->features.size;
     auto array_ptr = ros_message->features.data;
+    cdr << static_cast<uint32_t>(size);
+    cdr.serializeArray(array_ptr, size);
+  }
+
+  // Field name: attn
+  {
+    size_t size = ros_message->attn.size;
+    auto array_ptr = ros_message->attn.data;
     cdr << static_cast<uint32_t>(size);
     cdr.serializeArray(array_ptr, size);
   }
@@ -516,6 +524,21 @@ static bool _NetworkPT_Response__cdr_deserialize(
     cdr.deserializeArray(array_ptr, size);
   }
 
+  // Field name: attn
+  {
+    uint32_t cdrSize;
+    cdr >> cdrSize;
+    size_t size = static_cast<size_t>(cdrSize);
+    if (ros_message->attn.data) {
+      rosidl_generator_c__float__Sequence__fini(&ros_message->attn);
+    }
+    if (!rosidl_generator_c__float__Sequence__init(&ros_message->attn, size)) {
+      return "failed to create array for field 'attn'";
+    }
+    auto array_ptr = ros_message->attn.data;
+    cdr.deserializeArray(array_ptr, size);
+  }
+
   return true;
 }
 
@@ -582,6 +605,17 @@ size_t get_serialized_size_policy_translation__srv__NetworkPT_Response(
   {
     size_t array_size = ros_message->features.size;
     auto array_ptr = ros_message->features.data;
+    current_alignment += padding +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, padding);
+    (void)array_ptr;
+    size_t item_size = sizeof(array_ptr[0]);
+    current_alignment += array_size * item_size +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, item_size);
+  }
+  // field.name attn
+  {
+    size_t array_size = ros_message->attn.size;
+    auto array_ptr = ros_message->attn.data;
     current_alignment += padding +
       eprosima::fastcdr::Cdr::alignment(current_alignment, padding);
     (void)array_ptr;
@@ -658,6 +692,16 @@ size_t max_serialized_size_policy_translation__srv__NetworkPT_Response(
       eprosima::fastcdr::Cdr::alignment(current_alignment, sizeof(uint32_t));
   }
   // member: features
+  {
+    size_t array_size = 0;
+    full_bounded = false;
+    current_alignment += padding +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, padding);
+
+    current_alignment += array_size * sizeof(uint32_t) +
+      eprosima::fastcdr::Cdr::alignment(current_alignment, sizeof(uint32_t));
+  }
+  // member: attn
   {
     size_t array_size = 0;
     full_bounded = false;

@@ -24,6 +24,7 @@ from PIL import Image
 from semantic_parser import semantic_parser
 import time
 from dain_object_detector import show_image
+import tensorflow as tf
 
 # Default robot position. You don't need to change this
 DEFAULT_UR5_JOINTS  = [105.0, -30.0, 120.0, 90.0, 60.0, 90.0]
@@ -43,8 +44,10 @@ NORM_PATH           = "../GDrive/normalization_v2.pkl"
 # VREP_SCENE          = "../GDrive/testscene.ttt"
 VREP_SCENE          = "../GDrive/testscene2.ttt"
 VREP_SCENE          = os.getcwd() + "/" + VREP_SCENE
-CUP_ID_TO_NAME      = {21: 'red cup', 22: 'green cup', 23: 'blue cup', 0: 'NONE'}
-BIN_ID_TO_NAME      = {16: 'yellow bin', 17: 'red bin', 18: 'green bin', 19: 'blue bin', 20: 'pink bin', 0: 'NONE'}
+CUP_ID_TO_NAME      = {21: 'red cup', 22: 'green cup', 23: 'blue cup'}
+BIN_ID_TO_NAME      = {16: 'yellow dish', 17: 'red dish', 18: 'green dish', 19: 'blue dish', 20: 'pink dish'} # HACK
+SIM_CUP_TO_FRCNN    = {1:21, 2:22, 3:23, 4:21, 5:22, 6:23}
+SIM_BIN_TO_FRCNN    = {1:16, 2:17, 3:18, 4:19, 5:20}
 
 class Simulator(object):
     def __init__(self, args=None):
@@ -141,10 +144,10 @@ class Simulator(object):
                                         ints=(), floats=(), strings=(), bytes="")
         return i
     
-    def _evalPlacing(self):
-        _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="evalPlacing@control_script",
-                                        script_handle_or_type=1,
-                                        ints=(), floats=(), strings=(), bytes="")
+    # def _evalPlacing(self):
+    #     _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="evalPlacing@control_script",
+    #                                     script_handle_or_type=1,
+    #                                     ints=(), floats=(), strings=(), bytes="")
 
     def _getClosestBin(self):
         i, _, _, _ = self.pyrep.script_call(function_name_at_script_name="getClosestBin@control_script",
@@ -265,8 +268,9 @@ class Simulator(object):
         trajectory = self.restoreValues(trajectory, norm[0,:], norm[1,:])
         phase      = float(result.phase)
         features   = result.features
-        features = np.reshape(features, (6,5))
-        return trajectory, phase, features
+        features   = np.reshape(features, (6,5))
+        attn       = result.attn
+        return trajectory, phase, features, attn
     
     def normalize(self, value, v_min, v_max):
         if type(value) == list:
@@ -340,6 +344,28 @@ class Simulator(object):
         if placed_bin == 'NONE':
             return False
         return placed_bin in command or not any([i in command for i in ['red','green','blue']])
+    
+    def _evalObjectDetection(self, ground_truth, detected):
+        '''
+        e.g.
+        ground truth: [21,17,17,0,0,0] -- one red cup, two red bins
+        detected:     [21,17,0,0,0,0] -- one red cup, one red bin
+        '''
+        n_bins = ground_truth[0]
+        n_cups = ground_truth[1]
+        bins = [SIM_BIN_TO_FRCNN[i] for i in ground_truth[2:2+n_bins]]
+        cups = [SIM_CUP_TO_FRCNN[i] for i in ground_truth[2+n_bins:]]
+        gt = bins + cups + [0] * (6-len(bins+cups))
+        
+        return {} # TODO
+
+    def _evalAttention(self, ground_truth, attn):
+        '''
+        e.g.
+        ground truth: [1,0,0,0,0,0] -- command involving "red cup"
+        attn:         [.5,.9,0,0,0,0] -- misdetected red bin as red cup
+        '''
+        pass
 
     def _getTargetPosition(self, data):
         state  = self._getSimulatorState()
@@ -391,6 +417,29 @@ class Simulator(object):
             res = 2
         self.last_rotation = state[5]
         return res
+    
+    def _getTaskCommandInfo(self, command, task_type, subtasks):
+        data = {}
+        data["command"]   = command
+        data["task_type"] = task_type
+        data["subtasks"]  = subtasks
+        data['subtasks_info'] = self._getSubtasksInfo(subtasks)
+        return data
+    
+    def _getSubtasksInfo(self, subtasks):
+        subtasks_info = {}
+        subtasks_info['pick_total'] = sum([1 for i in subtasks if 'pick' in i])
+        subtasks_info['place_total'] = sum([1 for i in subtasks if 'pour' in i]) # HACK
+        subtasks_info['cup_total'] = sum([1 for i in subtasks if 'cup' in i])
+        subtasks_info['bin_total'] = sum([1 for i in subtasks if 'dish' in i]) # HACK
+        subtasks_info['cup_by_type'] = {}
+        subtasks_info['bin_by_type'] = {}
+        for cup_type in CUP_ID_TO_NAME.values():
+            subtasks_info['cup_by_type'][cup_type] = sum([1 for i in subtasks if cup_type in i])
+        for bin_type in BIN_ID_TO_NAME.values():
+            subtasks_info['bin_by_type'][bin_type] = sum([1 for i in subtasks if bin_type in i])
+        
+        return subtasks_info
         
 
     def _getLanguateInformation(self, voice, phs):
@@ -431,64 +480,61 @@ class Simulator(object):
         data["quantity"] = _quantity(voice)
         return data
     
-    def valSorting(self, files, feedback=True):
-        pick_successful  = 0
-        pick_total       = 0
-        place_successful = 0
-        place_total      = 0
-        val_data    = {}
-        nn_trajectory  = []
-        ro_trajectory  = []
-        # imgs = []
+    def evaluate(self, files, task_type):
+        summary = {
+            'pick_successful': 0,
+            'pick_total': 0,
+            'place_successful': 0,
+            'place_total': 0
+        }
+        val_result = {}
+
         for fid, fn in enumerate(files):
-            print("Sorting Run {}/{}".format(fid, len(files)))
+            print("{} Run {}/{}".format(task_type, fid, len(files)))
             eval_data = {}
+            """
+            eval_data:
+                'language': dict output of _getTaskCommandInfo (contains 'command', 'task_type', 'subtasks', 'subtasks_info')
+                'trajectory': list of 7 DOF robot joints at each step
+                'object_detection': dict output of _evalObjectDetection
+            """
             with open(fn, "r") as fh:
                 data = json.load(fh)
 
             # initial env setup
-            gt_trajectory = np.asarray(data["trajectory"])
             self._resetEnvironment()
             self._createEnvironment(data["ints"], data["floats"])
-            self._setRobotInitial(gt_trajectory[0,:])
             self.pyrep.step()
-
-            eval_data["language"] = self._getLanguateInformation(data["voice"], 1)
-            eval_data["trajectory"] = {"gt": [], "state": []}
-            eval_data["trajectory"]["gt"] = gt_trajectory.tolist()
-
-            _, _, features = self.predictTrajectory("", self._getRobotState(), 1)
+            _, _, features, _ = self.predictTrajectory("", self._getRobotState(), 1)
             feature_ids = [int(i) for i in features.T[0]]
             subtasks = semantic_parser(data["voice"], feature_ids)
+
+            eval_data["language"] = self._getTaskCommandInfo(data["voice"], task_type, subtasks)
+            eval_data["trajectory"] = []
+            eval_data["object_detection"] = self._evalObjectDetection(data["ints"], features)
+            summary['pick_total'] += eval_data['language']['subtasks_info']['pick_total']
+            summary['place_total'] += eval_data['language']['subtasks_info']['place_total']
+
             subtask_idx = 0
             rm_voice = subtasks[subtask_idx]
-
             cnt   = 0
             phase = 0.0
             self.last_gripper = 0.0
             th = 1.0
-            # while phase < th and cnt < int(gt_trajectory.shape[0] * 1.5):
             while phase < th:
-                # state = self._getRobotState() if feedback else gt_trajectory[-1 if cnt >= gt_trajectory.shape[0] else cnt,:]
-                state = self._getRobotState()
                 cnt += 1
-                tf_trajectory, phase, features = self.predictTrajectory(rm_voice, state, cnt)
+                state = self._getRobotState()
+                tf_trajectory, phase, features, attn = self.predictTrajectory(rm_voice, state, cnt)
                 r_state    = tf_trajectory[-1,:]
-                eval_data["trajectory"]["state"].append(r_state.tolist())
-                r_state[6] = r_state[6]
-                nn_trajectory.append(r_state)
-                ro_trajectory.append(self._getRobotState())
+                eval_data["trajectory"].append(r_state.tolist())
+                # r_state[6] = r_state[6]
                 self.last_gripper = r_state[6]
                 self._setJointVelocityFromTarget(r_state)
                 self.pyrep.step()
                 
-                # if r_state[6] > 0.5 and "locations" not in eval_data.keys():
-                #     eval_data["locations"] = self._getTargetPosition(data)
-                
                 if phase > 0.95:
                     # check if robot grabbed the correct cup
                     if 'pick' in rm_voice:
-                        pick_total += 1
                         grasped_cup = self._graspedObject()[0]
                         if grasped_cup > 0:
                             grabbed_cup = CUP_ID_TO_NAME[self._mapObjectIDs(grasped_cup)]
@@ -496,26 +542,16 @@ class Simulator(object):
                             # print('robot grabbed', grabbed_cup)
                             if self._correctGrab(rm_voice, grabbed_cup):
                                 print('successfully grabbed the right cup')
-                                pick_successful += 1
+                                summary['pick_successful'] += 1
                 
                     # check if robot placed cup in the correct bin
                     if 'pour' in rm_voice:
-                        place_total += 1
-                        # print('HERE')
-                        # print('robot pos', self._getRobotState())
-                        # print('features', features)
-                        # print('grabbed obj', self._mapObjectIDs(self._graspedObject()[0]))
-                        # self._evalPlacing()
-                        # print('closest bin to gripper', self._getClosestBin())
                         placed_bin = self._getClosestBin()[0]
                         if placed_bin > 0:
                             placed_bin = BIN_ID_TO_NAME[self._mapObjectIDs(placed_bin)]
                             if self._correctPlace(rm_voice, placed_bin):
                                 print('successfully placed in the right bin')
-                                place_successful += 1
-                        # img = self._getCameraImage()
-                        # print('img', img.shape)
-                        # imgs.append(img)
+                                summary['place_successful'] += 1
 
                         self._releaseObject()
                         self.resetRobotArm()
@@ -537,144 +573,137 @@ class Simulator(object):
                         subtask_idx = 0
                         phase = 1.0
 
-            # eval_data["success"] = False
-            # grasped_obj = self._graspedObject()
-            # print('grasped obj', grasped_obj)
-            # if grasped_obj:
-            #     eval_data["success"] = True
-            #     successful += 1
-            val_data[data["name"]] = eval_data
-            eval_data["grab_success_rate"] = 0. # TODO update this
+            val_result[data["name"]] = eval_data
             
-        return (pick_successful, pick_total), (place_successful, pick_total), val_data#, imgs
+        return summary, val_result
 
-    def valPhase1(self, files, feedback=True):
-        successfull = 0
-        val_data    = {}
-        nn_trajectory  = []
-        ro_trajectory  = []
-        for fid, fn in enumerate(files):
-            print("Phase 1 Run {}/{}".format(fid, len(files)))
-            eval_data = {}
-            with open(fn + "1.json", "r") as fh:
-                data = json.load(fh)            
+    # def valPhase1(self, files, feedback=True):
+    #     successfull = 0
+    #     val_data    = {}
+    #     nn_trajectory  = []
+    #     ro_trajectory  = []
+    #     for fid, fn in enumerate(files):
+    #         print("Phase 1 Run {}/{}".format(fid, len(files)))
+    #         eval_data = {}
+    #         with open(fn + "1.json", "r") as fh:
+    #             data = json.load(fh)            
 
-            gt_trajectory = np.asarray(data["trajectory"])
-            self._resetEnvironment()
-            self._createEnvironment(data["ints"], data["floats"])
-            self._setRobotInitial(gt_trajectory[0,:])
-            self.pyrep.step()
+    #         gt_trajectory = np.asarray(data["trajectory"])
+    #         self._resetEnvironment()
+    #         self._createEnvironment(data["ints"], data["floats"])
+    #         self._setRobotInitial(gt_trajectory[0,:])
+    #         self.pyrep.step()
 
-            eval_data["language"] = self._getLanguateInformation(data["voice"], 1)
-            eval_data["trajectory"] = {"gt": [], "state": []}
-            eval_data["trajectory"]["gt"] = gt_trajectory.tolist()
+    #         eval_data["language"] = self._getLanguateInformation(data["voice"], 1)
+    #         eval_data["trajectory"] = {"gt": [], "state": []}
+    #         eval_data["trajectory"]["gt"] = gt_trajectory.tolist()
 
-            cnt   = 0
-            phase = 0.0
-            self.last_gripper = 0.0
-            th = 1.0
-            while phase < th and cnt < int(gt_trajectory.shape[0] * 1.5):
-                state = self._getRobotState() if feedback else gt_trajectory[-1 if cnt >= gt_trajectory.shape[0] else cnt,:]
-                cnt += 1
-                tf_trajectory, phase, features = self.predictTrajectory(data["voice"], state, cnt)
-                r_state    = tf_trajectory[-1,:]
-                eval_data["trajectory"]["state"].append(r_state.tolist())
-                r_state[6] = r_state[6] 
-                nn_trajectory.append(r_state)
-                ro_trajectory.append(self._getRobotState())
-                self.last_gripper = r_state[6]
-                self._setJointVelocityFromTarget(r_state)
-                self.pyrep.step()
-                if r_state[6] > 0.5 and "locations" not in eval_data.keys():
-                    eval_data["locations"] = self._getTargetPosition(data)
+    #         cnt   = 0
+    #         phase = 0.0
+    #         self.last_gripper = 0.0
+    #         th = 1.0
+    #         while phase < th and cnt < int(gt_trajectory.shape[0] * 1.5):
+    #             state = self._getRobotState() if feedback else gt_trajectory[-1 if cnt >= gt_trajectory.shape[0] else cnt,:]
+    #             cnt += 1
+    #             tf_trajectory, phase, features, attn = self.predictTrajectory(data["voice"], state, cnt)
+    #             r_state    = tf_trajectory[-1,:]
+    #             eval_data["trajectory"]["state"].append(r_state.tolist())
+    #             r_state[6] = r_state[6] 
+    #             nn_trajectory.append(r_state)
+    #             ro_trajectory.append(self._getRobotState())
+    #             self.last_gripper = r_state[6]
+    #             self._setJointVelocityFromTarget(r_state)
+    #             self.pyrep.step()
+    #             if r_state[6] > 0.5 and "locations" not in eval_data.keys():
+    #                 eval_data["locations"] = self._getTargetPosition(data)
 
-            eval_data["success"] = False
-            if self._graspedObject():
-                eval_data["success"] = True
-                successfull += 1
-            val_data[data["name"]] = eval_data
+    #         eval_data["success"] = False
+    #         if self._graspedObject():
+    #             eval_data["success"] = True
+    #             successfull += 1
+    #         val_data[data["name"]] = eval_data
             
-        return successfull, val_data
+    #     return successfull, val_data
     
-    def valPhase2(self, files, feedback=True):
-        successfull         = 0
-        val_data            = {}
-        for fid, fn in enumerate(files):
-            print("Phase 2 Run {}/{}".format(fid, len(files)))
-            eval_data = {}
-            fpath     = fn + "2.json"
-            filename  = os.path.basename(fpath)
-            with open(fpath, "r") as fh:
-                data = json.load(fh)
-            gt_trajectory = np.asarray(data["trajectory"])
+    # def valPhase2(self, files, feedback=True):
+    #     successfull         = 0
+    #     val_data            = {}
+    #     for fid, fn in enumerate(files):
+    #         print("Phase 2 Run {}/{}".format(fid, len(files)))
+    #         eval_data = {}
+    #         fpath     = fn + "2.json"
+    #         filename  = os.path.basename(fpath)
+    #         with open(fpath, "r") as fh:
+    #             data = json.load(fh)
+    #         gt_trajectory = np.asarray(data["trajectory"])
             
-            if USE_SHAPE_SIZE and filename in self.shape_size_replacement.keys():
-                data["voice"] = self.shape_size_replacement[filename]
+    #         if USE_SHAPE_SIZE and filename in self.shape_size_replacement.keys():
+    #             data["voice"] = self.shape_size_replacement[filename]
 
-            self._resetEnvironment()
-            self._createEnvironment(data["ints"], data["floats"])
-            self._setRobotInitial(gt_trajectory[0,:])
-            self.pyrep.step()
-            self._graspClosestContainer()
-            self.pyrep.step()
+    #         self._resetEnvironment()
+    #         self._createEnvironment(data["ints"], data["floats"])
+    #         self._setRobotInitial(gt_trajectory[0,:])
+    #         self.pyrep.step()
+    #         self._graspClosestContainer()
+    #         self.pyrep.step()
 
-            self.last_gripper  = 1.0
-            self.last_rotation = 0.0
+    #         self.last_gripper  = 1.0
+    #         self.last_rotation = 0.0
 
-            eval_data["language"] = self._getLanguateInformation(data["voice"], 2)
-            eval_data["trajectory"] = {"gt": [], "state": []}
-            eval_data["trajectory"]["gt"] = gt_trajectory.tolist()
+    #         eval_data["language"] = self._getLanguateInformation(data["voice"], 2)
+    #         eval_data["trajectory"] = {"gt": [], "state": []}
+    #         eval_data["trajectory"]["gt"] = gt_trajectory.tolist()
 
-            cnt   = 0
-            phase = 0.0
-            th = 1.0
-            while phase < th and cnt < int(gt_trajectory.shape[0] * 1.5):
-                state = self._getRobotState() if feedback else gt_trajectory[-1 if cnt >= gt_trajectory.shape[0] else cnt,:]
-                cnt += 1
-                tf_trajectory, phase, _ = self.predictTrajectory(data["voice"], self._getRobotState(), cnt)
-                r_state              = tf_trajectory[-1,:]
-                # r_state[5] = 0.0 # TODO last angle of rotation?
-                eval_data["trajectory"]["state"].append(r_state.tolist())
-                r_state[6]           = r_state[6]
-                self._setJointVelocityFromTarget(r_state)
-                self.last_gripper = r_state[6]
-                # dropped = self._maybeDropBall(r_state)
-                dropped = self._maybeRelease(r_state)
-                if dropped == 1 and "locations" not in eval_data.keys():
-                    eval_data["locations"] = self._getTargetPosition(data)
-                self.pyrep.step()
+    #         cnt   = 0
+    #         phase = 0.0
+    #         th = 1.0
+    #         while phase < th and cnt < int(gt_trajectory.shape[0] * 1.5):
+    #             state = self._getRobotState() if feedback else gt_trajectory[-1 if cnt >= gt_trajectory.shape[0] else cnt,:]
+    #             cnt += 1
+    #             tf_trajectory, phase, _, attn = self.predictTrajectory(data["voice"], self._getRobotState(), cnt)
+    #             r_state              = tf_trajectory[-1,:]
+    #             # r_state[5] = 0.0 # TODO last angle of rotation?
+    #             eval_data["trajectory"]["state"].append(r_state.tolist())
+    #             r_state[6]           = r_state[6]
+    #             self._setJointVelocityFromTarget(r_state)
+    #             self.last_gripper = r_state[6]
+    #             # dropped = self._maybeDropBall(r_state)
+    #             dropped = self._maybeRelease(r_state)
+    #             if dropped == 1 and "locations" not in eval_data.keys():
+    #                 eval_data["locations"] = self._getTargetPosition(data)
+    #             self.pyrep.step()
 
-            presult                 = self._evalPouring()
-            eval_percentage         = np.sum(presult) / float(len(presult))
-            eval_data["ball_array"] = presult
-            if eval_percentage > 0.5:
-                successfull += 1
-                eval_data["success"] = True
-            else:
-                eval_data["success"] = False
-            val_data[data["name"]] = eval_data
+    #         presult                 = self._evalPouring()
+    #         eval_percentage         = np.sum(presult) / float(len(presult))
+    #         eval_data["ball_array"] = presult
+    #         if eval_percentage > 0.5:
+    #             successfull += 1
+    #             eval_data["success"] = True
+    #         else:
+    #             eval_data["success"] = False
+    #         val_data[data["name"]] = eval_data
             
-        return successfull, val_data
+    #     return successfull, val_data
 
     def evalDirect(self, runs):
         # files = glob.glob("../GDrive/dain/testdata/*_1.json")
-        sort_files = [f"sort_{i}.json" for i in range(1, 11)]
-        kit_files = [f"kit_{i}.json" for i in range(1, 11)]
-        self.node.get_logger().info("Using data directory with {} files".format(len(sort_files)+len(kit_files)))
+        sort_files = [f"sort_{i}.json" for i in range(1, 2)]
+        kit_files = [f"kit_{i}.json" for i in range(1, 2)]
+        # self.node.get_logger().info("Using data directory with {} files".format(len(sort_files)+len(kit_files)))
         # files = files[:runs]
         # files = [f[:-6] for f in files]
         self.node.get_logger().info("Running validation on {} files".format(len(sort_files)+len(kit_files)))
 
         data = {}
-        sort_pick_result, sort_place_result, sort_data        = self.valSorting(sort_files)
-        data["sort_data"]     = sort_data
-        kit_pick_result, kit_place_result, kit_data           = self.valSorting(kit_files)
-        data["kit_data"]     = kit_data
+        sort_summary, sort_result = self.evaluate(sort_files, 'sorting')
+        kit_summary, kit_result   = self.evaluate(kit_files, 'kitting')
+        data["sorting"]           = sort_result
+        data["kitting"]           = kit_result
 
-        self.node.get_logger().info("Testing Sorting (Pick): {}/{} ({:.1f}%)".format(sort_pick_result[0],  sort_pick_result[1], 100.0 * float(sort_pick_result[0])/float(sort_pick_result[1])))
-        self.node.get_logger().info("Testing Sorting (Place): {}/{} ({:.1f}%)".format(sort_place_result[0],  sort_place_result[1], 100.0 * float(sort_place_result[0])/float(sort_place_result[1])))
-        self.node.get_logger().info("Testing Kitting (Pick): {}/{} ({:.1f}%)".format(kit_pick_result[0],  kit_pick_result[1], 100.0 * float(kit_pick_result[0])/float(kit_pick_result[1])))
-        self.node.get_logger().info("Testing Kitting (Place): {}/{} ({:.1f}%)".format(kit_place_result[0],  kit_place_result[1], 100.0 * float(kit_place_result[0])/float(kit_place_result[1])))
+        self.node.get_logger().info("Testing Sorting (Pick): {}/{} ({:.1f}%)".format(sort_summary['pick_successful'],sort_summary['pick_total'], 100.0*sort_summary['pick_successful']/sort_summary['pick_total']))
+        self.node.get_logger().info("Testing Sorting (Place): {}/{} ({:.1f}%)".format(sort_summary['place_successful'],sort_summary['place_total'], 100.0*sort_summary['place_successful']/sort_summary['place_total']))
+        self.node.get_logger().info("Testing Kitting (Pick): {}/{} ({:.1f}%)".format(kit_summary['pick_successful'],kit_summary['pick_total'], 100.0*kit_summary['pick_successful']/kit_summary['pick_total']))
+        self.node.get_logger().info("Testing Kitting (Place): {}/{} ({:.1f}%)".format(kit_summary['place_successful'],kit_summary['place_total'], 100.0*kit_summary['place_successful']/kit_summary['place_total']))
         # self.node.get_logger().info("Testing Kitting: {}/{} ({:.1f}%)".format(s_p2,  runs, 100.0 * float(s_p2)/float(runs)))
 
         # TODO
@@ -718,9 +747,10 @@ class Simulator(object):
             return [px, py]
         self._setRobotJoints(np.deg2rad(DEFAULT_UR5_JOINTS))
 
-        ncups  = np.random.randint(1,6)
-        nbowls = np.random.randint(1,3)
-        bowls  = np.random.choice(3, size=nbowls, replace=False) + 1
+        # Max 6 objects per scene
+        ncups  = np.random.randint(1,5)
+        nbowls = np.random.randint(1,7-ncups)
+        bowls  = np.random.choice(5, size=nbowls, replace=False) + 1
         cups   = np.random.choice(6, size=ncups, replace=False) + 1
         ints   = [nbowls, ncups] + bowls.tolist() + cups.tolist()
         floats = []
@@ -770,11 +800,11 @@ class Simulator(object):
 
         # Sim 0: default
         if idx == "0":
-            ints = [3, 6, 1,2,3, 1,2,3,4,5,6]
+            ints = [5, 6, 1,2,3,4,5, 1,2,3,4,5,6]
             floats = []
             bin_pos = [0, -1, 0]
             cup_pos = [-1, 0, 0]
-            for i in range(3):
+            for i in range(5):
                 floats += bin_pos
                 bin_pos[0] += 0.25
                 bin_pos[1] += 0.25
@@ -912,7 +942,7 @@ class Simulator(object):
         elif d_in.startswith("t "):
             # self.rm_voice = d_in[2:]
             # get the scene objects
-            _, _, features = self.predictTrajectory("", self._getRobotState(), 1)
+            _, _, features, attn = self.predictTrajectory("", self._getRobotState(), 1)
             feature_ids = [int(i) for i in features.T[0]]
             self.subtasks = semantic_parser(d_in[2:], feature_ids)
             self.subtask_idx = 0
@@ -922,7 +952,7 @@ class Simulator(object):
         elif self.rm_voice != "" and  d_in == "":
             # run robot
             self.cnt += 1
-            tf_trajectory, phase, features = self.predictTrajectory(self.rm_voice, self._getRobotState(), self.cnt)
+            tf_trajectory, phase, features, attn = self.predictTrajectory(self.rm_voice, self._getRobotState(), self.cnt)
             r_state              = tf_trajectory[-1,:]
             # r_state = 6x robot joint position (j1, j2, j3, j4, j5, j6) + gripper position
             # hack: no rotation

@@ -175,6 +175,7 @@ ROSIDL_TYPESUPPORT_INTERFACE__MESSAGE_SYMBOL_NAME(rosidl_typesupport_introspecti
 // Member `confidence`
 // Member `weights`
 // Member `features`
+// Member `attn`
 // already included above
 // #include "rosidl_generator_c/primitives_sequence_functions.h"
 
@@ -197,7 +198,7 @@ void NetworkPT_Response__rosidl_typesupport_introspection_c__NetworkPT_Response_
   policy_translation__srv__NetworkPT_Response__fini(message_memory);
 }
 
-static rosidl_typesupport_introspection_c__MessageMember NetworkPT_Response__rosidl_typesupport_introspection_c__NetworkPT_Response_message_member_array[6] = {
+static rosidl_typesupport_introspection_c__MessageMember NetworkPT_Response__rosidl_typesupport_introspection_c__NetworkPT_Response_message_member_array[7] = {
   {
     "trajectory",  // name
     rosidl_typesupport_introspection_c__ROS_TYPE_FLOAT,  // type
@@ -287,13 +288,28 @@ static rosidl_typesupport_introspection_c__MessageMember NetworkPT_Response__ros
     NULL,  // get_const(index) function pointer
     NULL,  // get(index) function pointer
     NULL  // resize(index) function pointer
+  },
+  {
+    "attn",  // name
+    rosidl_typesupport_introspection_c__ROS_TYPE_FLOAT,  // type
+    0,  // upper bound of string
+    NULL,  // members of sub message
+    true,  // is array
+    0,  // array size
+    false,  // is upper bound
+    offsetof(policy_translation__srv__NetworkPT_Response, attn),  // bytes offset in struct
+    NULL,  // default value
+    NULL,  // size() function pointer
+    NULL,  // get_const(index) function pointer
+    NULL,  // get(index) function pointer
+    NULL  // resize(index) function pointer
   }
 };
 
 static const rosidl_typesupport_introspection_c__MessageMembers NetworkPT_Response__rosidl_typesupport_introspection_c__NetworkPT_Response_message_members = {
   "policy_translation__srv",  // message namespace
   "NetworkPT_Response",  // message name
-  6,  // number of fields
+  7,  // number of fields
   sizeof(policy_translation__srv__NetworkPT_Response),
   NetworkPT_Response__rosidl_typesupport_introspection_c__NetworkPT_Response_message_member_array,  // message members
   NetworkPT_Response__rosidl_typesupport_introspection_c__NetworkPT_Response_init_function,  // function to initialize message memory (memory has to be allocated)

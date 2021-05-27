@@ -228,6 +228,7 @@ class NetworkPT_Request(metaclass=Metaclass_NetworkPT_Request):
 # Member 'confidence'
 # Member 'weights'
 # Member 'features'
+# Member 'attn'
 # already imported above
 # import array
 
@@ -286,6 +287,7 @@ class NetworkPT_Response(metaclass=Metaclass_NetworkPT_Response):
         '_weights',
         '_phase',
         '_features',
+        '_attn',
     ]
 
     _fields_and_field_types = {
@@ -295,6 +297,7 @@ class NetworkPT_Response(metaclass=Metaclass_NetworkPT_Response):
         'weights': 'sequence<float>',
         'phase': 'float',
         'features': 'sequence<float>',
+        'attn': 'sequence<float>',
     }
 
     SLOT_TYPES = (
@@ -303,6 +306,7 @@ class NetworkPT_Response(metaclass=Metaclass_NetworkPT_Response):
         rosidl_parser.definition.BasicType('int32'),  # noqa: E501
         rosidl_parser.definition.UnboundedSequence(rosidl_parser.definition.BasicType('float')),  # noqa: E501
         rosidl_parser.definition.BasicType('float'),  # noqa: E501
+        rosidl_parser.definition.UnboundedSequence(rosidl_parser.definition.BasicType('float')),  # noqa: E501
         rosidl_parser.definition.UnboundedSequence(rosidl_parser.definition.BasicType('float')),  # noqa: E501
     )
 
@@ -316,6 +320,7 @@ class NetworkPT_Response(metaclass=Metaclass_NetworkPT_Response):
         self.weights = array.array('f', kwargs.get('weights', []))
         self.phase = kwargs.get('phase', float())
         self.features = array.array('f', kwargs.get('features', []))
+        self.attn = array.array('f', kwargs.get('attn', []))
 
     def __repr__(self):
         typename = self.__class__.__module__.split('.')
@@ -357,6 +362,8 @@ class NetworkPT_Response(metaclass=Metaclass_NetworkPT_Response):
         if self.phase != other.phase:
             return False
         if self.features != other.features:
+            return False
+        if self.attn != other.attn:
             return False
         return True
 
@@ -504,6 +511,34 @@ class NetworkPT_Response(metaclass=Metaclass_NetworkPT_Response):
                  True), \
                 "The 'features' field must be a set or sequence and each value of type 'float'"
         self._features = array.array('f', value)
+
+    @property
+    def attn(self):
+        """Message field 'attn'."""
+        return self._attn
+
+    @attn.setter
+    def attn(self, value):
+        if isinstance(value, array.array):
+            assert value.typecode == 'f', \
+                "The 'attn' array.array() must have the type code of 'f'"
+            self._attn = value
+            return
+        if __debug__:
+            from collections.abc import Sequence
+            from collections.abc import Set
+            from collections import UserList
+            from collections import UserString
+            assert \
+                ((isinstance(value, Sequence) or
+                  isinstance(value, Set) or
+                  isinstance(value, UserList)) and
+                 not isinstance(value, str) and
+                 not isinstance(value, UserString) and
+                 all(isinstance(v, float) for v in value) and
+                 True), \
+                "The 'attn' field must be a set or sequence and each value of type 'float'"
+        self._attn = array.array('f', value)
 
 
 class Metaclass_NetworkPT(type):

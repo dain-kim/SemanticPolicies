@@ -127,7 +127,7 @@ class NetworkService():
         return result
 
     def cbk_network_dmp_ros2(self, req, res):
-        res.trajectory, res.confidence, res.timesteps, res.weights, res.phase, res.features, res.attn = self.cbk_network_dmp(req)
+        res.trajectory, res.confidence, res.timesteps, res.weights, res.phase, res.features = self.cbk_network_dmp(req)
         return res
     
     def imgmsg_to_cv2(self, img_msg, desired_encoding="passthrough"):   
@@ -165,35 +165,19 @@ class NetworkService():
 
     def reset_state(self):
         print('resetting service state')
-        self.first_call = True
-        self.subtasks = []  # this stores the nl subtask commands
-        self.tokenized_subtasks = []  # this stores the tokenized tensors of the nl subtask commands
-        self.subtask_embeddings = []  # this stores the task embeddings of the subtasks
-        self.As = []  # this stores the output of the attention network (atn)
-        self.subtask_steps = []  # this is for keeping track of how long each subtask took
-        self.subtask_idx = 0
-        self.raw_a = np.array([])
-        # self._next = False
-        # self.cur_subtask = None
-        # self.subtask_attn = None
-        # self.subtask_embedding = None
-        # self.phase = 0.0
-        # self.flipped = False
-        # self.batch_size = None
+        # self.first_call = True
+        self.history = []
+        self.sfp_history = []
+        self.req_step = 1
+        self.task_embedding = None
 
     def cbk_network_dmp(self, req):
-        if req.reset:
-            self.req_step = 0
-            self.sfp_history = []
-            # self.first_call = True
+        if req.reset: # cnt = 1
             self.reset_state()
             try:
                 image = self.imgmsg_to_cv2(req.image)
             except CvBridgeError as e:
                 print(e)
-            ## Original language processing
-            # language = self.tokenize(req.language)
-            # self.language = language + [0] * (15-len(language))
 
             image_features = model.frcnn(tf.convert_to_tensor([image], dtype=tf.uint8))
 
@@ -211,44 +195,52 @@ class NetworkService():
             
             self.features = np.concatenate((np.expand_dims(classes,1), boxes), axis=1)
 
-            self.history  = []
+            # Tokenize language input
+            language = self.tokenize(req.language)
+            self.language = language + [0] * (15-len(language))
+
+            self.language_tf = tf.convert_to_tensor(np.tile([self.language],[250, 1]), dtype=tf.int64)
+            self.features_tf = tf.convert_to_tensor(np.tile([self.features],[250, 1, 1]), dtype=tf.float32)
+
+            # attention network
+            sentence_embedding, atn = model.get_attention(self.language_tf, self.features_tf, training=tf.constant(False))
+            print('RAW A', atn[0])
+            
+            # task object selector
+            atn = tf.numpy_function(random_choose, [atn], tf.float32)
+            atn = tf.convert_to_tensor(atn, dtype=tf.float32)
+
+            # create task embedding (language + features)
+            atn_w = tf.expand_dims(atn, 2)
+            atn_w = tf.tile(atn_w, [1, 1, 5])
+            # Compress image features and apply attention
+            task_embedding = tf.math.multiply(atn_w, self.features_tf)
+            task_embedding = tf.math.reduce_sum(task_embedding, axis=1)
+            # Add the language to the mix again. Possibly usefull to predict dt
+            _history = [list(req.robot)]
+            _robot = np.asarray(_history, dtype=np.float32)
+            _tmp = tf.convert_to_tensor(np.tile([_robot],[250, 1, 1]), dtype=tf.float32)
+            start_joints  = _tmp[:,0,:]
+            self.task_embedding = tf.keras.backend.concatenate((task_embedding, sentence_embedding, start_joints), axis=1)
+            # self.first_call = False
 
         self.history.append(list(req.robot)) 
 
         robot           = np.asarray(self.history, dtype=np.float32)
-        ### pseudocode
-        # if first time calling the command,
-        if self.first_call:
-            # generate subtasks and embeddings and save it to self.subtasks etc.
-            self.generate_subtasks(req.language, 
-                                   tf.convert_to_tensor(np.tile([self.features],[250, 1, 1]), dtype=tf.float32), 
-                                   tf.convert_to_tensor(np.tile([robot],[250, 1, 1]), dtype=tf.float32), 
-                                   training=tf.constant(False))
-            self.subtask_steps = [0] * len(self.subtasks)
-            self.first_call = False
-            phase_value = 1
-        # get the embedding of the current subtask
-        try:
-            task_embedding = self.subtask_embeddings[self.subtask_idx]
-        except:
+        self.robot_tf = tf.convert_to_tensor(np.tile([robot],[250, 1, 1]), dtype=tf.float32)
+
+        if self.task_embedding is None:
             # print('You shouldn\'t be here')
-            print('no task embedding', req.language)
-            return ([], [], 0, [], 0.0, self.features.flatten().tolist(), self.raw_a.tolist())
+            return ([], [], 0, [], 0.0, self.features.flatten().tolist())
         # call the model with the current embedding
         input_data = (
-            # tf.convert_to_tensor(np.tile([self.language],[250, 1]), dtype=tf.int64), ## Original language input in tensor form
-            self.As[self.subtask_idx],
-            tf.convert_to_tensor(np.tile([self.features],[250, 1, 1]), dtype=tf.float32),
-            tf.convert_to_tensor(np.tile([robot],[250, 1, 1]), dtype=tf.float32)
+            self.language_tf,
+            self.features_tf,
+            self.robot_tf
         )
-        # print("OBJECTS DETECTED (classes and boxes)")
-        # print(self.features)
-        # print("TASK EMBEDDING")
-        # print('task embedding\n', task_embedding[0])
-
-        # print("Before the new call")
+        
         s = time.time()
-        generated, (atn, dmp_dt, phase, weights) = model.new_call(input_data, task_embedding, training=tf.constant(False), use_dropout=tf.constant(True))
+        generated, (atn, dmp_dt, phase, weights) = model.new_call(input_data, self.task_embedding, training=tf.constant(False), use_dropout=tf.constant(True))
 
         self.trj_gen    = tf.math.reduce_mean(generated, axis=0).numpy()
         self.trj_std    = tf.math.reduce_std(generated, axis=0).numpy()
@@ -257,58 +249,35 @@ class NetworkService():
 
         subtask_phase     = tf.math.reduce_mean(phase, axis=0).numpy()
         subtask_phase     = subtask_phase[-1,0]
-        phase_value       = min((subtask_phase + self.subtask_idx) / (len(self.subtasks)), 1.)
-        # print('subtask', self.subtask_idx, '\t', round(time.time() - s,3), 'seconds to run\tsubtask phase:', round(subtask_phase,3), '\t task phase:', round(phase_value, 3))
-        self.subtask_steps[self.subtask_idx] += 1
-
-        if 'pour' in self.subtasks[self.subtask_idx] and self.trj_gen[-1][5] > 0.55:
-            phase_value = 1
+        
+        if 'pour' in req.language and self.trj_gen[-1][5] > 0.55:
             subtask_phase = 1
-            self.subtask_steps[self.subtask_idx] = 101
+            self.req_step = 101
             print("Forcing pouring rotation to stop")
 
-        # determine if subtask is complete
-        # if subtask is complete:
-        if subtask_phase > 0.98 and self.subtask_steps[self.subtask_idx] > 100:
-            
-            # TEMP hack for pour -> place motion
-            # if 'pour' in self.subtasks[self.subtask_idx]:
-            #     print('this was a pour operation. dropping object now')
-            #     print(generated)
-            #     print(dmp_dt)
-            # move on to the next index
-            # print('moving onto the next subtask..')
-            self.subtask_idx += 1
-            # print(self.subtask_idx)
-            # self._next = True
-            # reset variables
-            # if no more subtask left:
-            if self.subtask_idx >= len(self.subtasks):
-                # reset all variables
-                # print('-----DONE WITH ALL SUBTASKS-----')
-                trj_len    = len(self.sfp_history)
-                basismodel = GaussianModel(degree=11, scale=0.012, observed_dof_names=("Base","Shoulder","Ellbow","Wrist1","Wrist2","Wrist3","Gripper"))
-                domain     = np.linspace(0, 1, trj_len, dtype=np.float64)
-                trajectories = []
-                for i in range(trj_len):
-                    trajectories.append(np.asarray(basismodel.apply_coefficients(domain, self.sfp_history[i].flatten())))
-                trajectories = np.asarray(trajectories)
-                np.save("trajectories", trajectories)
-                np.save("history", self.history)
+        # determine if task is complete
+        if subtask_phase > 0.98 and self.req_step > 100:
+            trj_len    = len(self.sfp_history)
+            basismodel = GaussianModel(degree=11, scale=0.012, observed_dof_names=("Base","Shoulder","Ellbow","Wrist1","Wrist2","Wrist3","Gripper"))
+            domain     = np.linspace(0, 1, trj_len, dtype=np.float64)
+            trajectories = []
+            for i in range(trj_len):
+                trajectories.append(np.asarray(basismodel.apply_coefficients(domain, self.sfp_history[i].flatten())))
+            trajectories = np.asarray(trajectories)
+            np.save("trajectories", trajectories)
+            np.save("history", self.history)
 
-                gen_trajectory = []
-                var_trj        = np.zeros((trj_len, trj_len, 7), dtype=np.float32)
-                for w in range(trj_len):
-                    gen_trajectory.append(trajectories[w,w,:])
-                gen_trajectory = np.asarray(gen_trajectory)
-                np.save("gen_trajectory", gen_trajectory)            
+            gen_trajectory = []
+            var_trj        = np.zeros((trj_len, trj_len, 7), dtype=np.float32)
+            for w in range(trj_len):
+                gen_trajectory.append(trajectories[w,w,:])
+            gen_trajectory = np.asarray(gen_trajectory)
+            np.save("gen_trajectory", gen_trajectory)            
 
-                self.sfp_history = []
-                self.reset_state()
-
+            self.reset_state()
         
         self.req_step += 1
-        return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), float(phase_value), self.features.flatten().tolist(), self.raw_a.tolist())
+        return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), float(subtask_phase), self.features.flatten().tolist())
     
     def idToText(self, id):
         names = ["", "Yellow Small Round", "Red Small Round", "Green Small Round", "Blue Small Round", "Pink Small Round",
@@ -349,26 +318,25 @@ class NetworkService():
         fig = plt.figure()
         plt.imshow(image_np)
     
-    def generate_subtasks(self, language, features, robot, training):
-        # print('generating subtasks')
-        # self.subtasks = semantic_parser(language)
-        self.subtasks = [language]  # TEMP override subtask generation since it's being done in val_model_vrep
-        for subtask in self.subtasks:
-            tokenized = self.tokenize_subtask(language)
-            self.tokenized_subtasks.append(tokenized)
-            sentence_embedding, a = model.get_attention(tokenized, features, training=training)
-            print('RAW A', a[0])
-            self.raw_a = a[0].numpy()
-            
-            # task object selector
-            a = tf.numpy_function(random_choose, [a], tf.float32)
-            print('a\n', a[0])
-            a = tf.convert_to_tensor(a, dtype=tf.float32)
+    # def generate_subtasks(self, atn, features, robot, training):
+    #     # print('generating subtasks')
+    #     # self.subtasks = semantic_parser(language)
+    #     # self.subtasks = [language]  # TEMP override subtask generation since it's being done in val_model_vrep
+    #     # for subtask in self.subtasks:
+    #     # tokenized = self.tokenize_subtask(language)
+    #     # self.tokenized_subtasks.append(tokenized)
+    #     sentence_embedding, a = model.get_attention(atn, features, training=training)
+    #     print('RAW A', a[0])
+        
+    #     # task object selector
+    #     a = tf.numpy_function(random_choose, [a], tf.float32)
+    #     # print('a\n', a[0])
+    #     a = tf.convert_to_tensor(a, dtype=tf.float32)
 
-            self.As.append(a)
+    #     self.As.append(a)
 
-            task_embedding = self.generate_task_embedding(a, features, sentence_embedding, robot)
-            self.subtask_embeddings.append(task_embedding)
+    #     task_embedding = self.generate_task_embedding(a, features, sentence_embedding, robot)
+    #     self.subtask_embeddings.append(task_embedding)
         
 
 

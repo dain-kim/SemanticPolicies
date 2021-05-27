@@ -67,8 +67,14 @@ def semantic_parser(sentence, feature_ids=[]):
         obj_l = tokens[get_abs_idx(tree,[subtree_idx,0]):get_abs_idx(tree,[subtree_idx,0])+len(tree[subtree_idx])]
         if tree[subtree_idx,-1] == 'NN':
             # single object
-            subtask = ' '.join(['pick', 'up'] + obj_l)
-            subtasks.append(subtask)
+            if tree[subtree_idx, 0] == 'CD':
+                count = num_to_int[tokens[get_abs_idx(tree, [subtree_idx,0])].lower()]
+                for i in range(count):
+                    subtask = ' '.join(['pick', 'up', 'the'] + obj_l[1:-1] + ['cup'])
+                    subtasks.append(subtask)
+            else:
+                subtask = ' '.join(['pick', 'up'] + obj_l)
+                subtasks.append(subtask)
         elif tree[subtree_idx,-1] == 'NNS':
             # multiple objects
             if tree[subtree_idx, 0] == 'PDT':

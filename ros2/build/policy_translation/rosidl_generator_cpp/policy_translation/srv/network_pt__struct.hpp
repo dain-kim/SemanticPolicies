@@ -244,6 +244,9 @@ struct NetworkPT_Response_
   using _features_type =
     std::vector<float, typename ContainerAllocator::template rebind<float>::other>;
   _features_type features;
+  using _attn_type =
+    std::vector<float, typename ContainerAllocator::template rebind<float>::other>;
+  _attn_type attn;
 
   // setters for named parameter idiom
   Type & set__trajectory(
@@ -280,6 +283,12 @@ struct NetworkPT_Response_
     const std::vector<float, typename ContainerAllocator::template rebind<float>::other> & _arg)
   {
     this->features = _arg;
+    return *this;
+  }
+  Type & set__attn(
+    const std::vector<float, typename ContainerAllocator::template rebind<float>::other> & _arg)
+  {
+    this->attn = _arg;
     return *this;
   }
 
@@ -341,6 +350,9 @@ struct NetworkPT_Response_
       return false;
     }
     if (this->features != other.features) {
+      return false;
+    }
+    if (this->attn != other.attn) {
       return false;
     }
     return true;

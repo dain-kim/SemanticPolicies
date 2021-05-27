@@ -5,3 +5,4 @@ int32 timesteps
 float32[] weights
 float32 phase
 float32[] features
+float32[] attn
