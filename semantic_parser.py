@@ -28,9 +28,9 @@ def semantic_parser(sentence, feature_ids=[]):
     if type(sentence) != str:
         return []
     # pattern matching
-    print('\n------------\n')
     sentence = sentence.lower()
-    print('semantic parser received:', sentence)
+    # print('\n------------\n')
+    # print('semantic parser received:', sentence)
     tokens = nltk.word_tokenize(sentence)
     tagged = nltk.pos_tag(tokens)
     # nltk doesn't seem to correctly tag some words
@@ -114,13 +114,13 @@ def semantic_parser(sentence, feature_ids=[]):
     
     trees = get_trees(tags)
     if len(trees) > 1:
-        print('WARNING: more than one tree generated')
+        print('WARNING: more than one parser tree generated')
     if len(trees)  == 0:
-        print('ERROR: parser could not understand input')
+        print('WARNING: parser could not understand input')
         return []
 
     for tree in trees:
-        tree.pretty_print()
+        # tree.pretty_print()
         if tree.label() != 'S':
             print('ERROR: sentence is not correctly structured')
             return []
@@ -130,8 +130,8 @@ def semantic_parser(sentence, feature_ids=[]):
 
         if len(tree) == 2:
             # V O
-            print('no subtasks generated')
-            print([sentence])
+            # print('no subtasks generated')
+            # print([sentence])
             return [sentence]
 
         elif len(tree) == 3:
@@ -139,15 +139,15 @@ def semantic_parser(sentence, feature_ids=[]):
             subtasks = []
             # TEMP hack to handle second command "put it in the dish" when the robot is holding something
             if tags[1] == 'PRP':
-                print('no subtasks generated')
-                print([sentence])
+                # print('no subtasks generated')
+                # print([sentence])
                 return [sentence]
             
             subtasks += generate_pick_tasks(tree, 1)
             place_subtasks = generate_place_tasks(tree, 2)*len(subtasks)
             # interleave
             subtasks = [val for pair in zip(subtasks, place_subtasks) for val in pair]
-            print('generated subtasks:', subtasks)
+            # print('generated subtasks:', subtasks)
             return subtasks
 
         elif len(tree) == 5:
@@ -159,7 +159,7 @@ def semantic_parser(sentence, feature_ids=[]):
             place_subtasks = generate_place_tasks(tree, 4)*len(subtasks)
             # interleave
             subtasks = [val for pair in zip(subtasks, place_subtasks) for val in pair]
-            print('generated subtasks:', subtasks)
+            # print('generated subtasks:', subtasks)
             return subtasks
 
         elif len(tree) == 6:
@@ -170,7 +170,7 @@ def semantic_parser(sentence, feature_ids=[]):
             place_subtasks = generate_place_tasks(tree, 5)*len(subtasks)
             # interleave
             subtasks = [val for pair in zip(subtasks, place_subtasks) for val in pair]
-            print('generated subtasks:', subtasks)
+            # print('generated subtasks:', subtasks)
             return subtasks
 
         elif len(tree) == 7:

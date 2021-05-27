@@ -42,6 +42,10 @@ NORM_PATH           = "../GDrive/normalization_v2.pkl"
 # VREP_SCENE          = "../GDrive/testscene.ttt"
 VREP_SCENE          = "../GDrive/testscene2.ttt"
 VREP_SCENE          = os.getcwd() + "/" + VREP_SCENE
+# Data collection vars
+COLLECT_DATA        = False
+NUM_SAMPLES         = 2
+DATA_PATH           = "./eval_data/"
 # CUP_ID_TO_NAME      = {21: 'red cup', 22: 'green cup', 23: 'blue cup'}
 # BIN_ID_TO_NAME      = {16: 'yellow dish', 17: 'red dish', 18: 'green dish', 19: 'blue dish', 20: 'pink dish'}
 # SIM_CUP_TO_FRCNN    = {1:21, 2:22, 3:23, 4:21, 5:22, 6:23}
@@ -321,35 +325,59 @@ class Simulator(object):
 
         return detection
 
-    def _evalAttention(self, subtasks):
-        '''
-        attention = [
-            {
-                'keyword': 'red cup',                 -- command involving "red cup"
-                'ground_truth': [0,0,0,0,21,21],      -- two red cups
-                'attended_objects': [0,0,0,0,0,21]    -- one red cup attended to
-            }
-        ]
-        '''
-        attention = []
+    # def _evalAttention(self, subtasks):
+    #     '''
+    #     attention = [
+    #         {
+    #             'keyword': 'red cup',                 -- command involving "red cup"
+    #             'ground_truth': [0,0,0,0,21,21],      -- two red cups
+    #             'attended_objects': [0,0,0,0,0,21]    -- one red cup attended to
+    #         }
+    #     ]
+    #     '''
+    #     attention = []
 
-        for subtask in subtasks:
-            subtask_attn_result = {'keyword': self._findKeyword(subtask)}
-            _, _, features, attn = self.predictTrajectory(subtask, self._getRobotState(), 1)
-            feature_ids = [int(i) for i in features.T[0]]
-            ground_truth = self._getAttentionGT(subtask, feature_ids)
+    #     for subtask in subtasks:
+    #         subtask_attn_result = {'keyword': self._findKeyword(subtask)}
+    #         _, _, features, attn = self.predictTrajectory(subtask, self._getRobotState(), 1)
+    #         feature_ids = [int(i) for i in features.T[0]]
+    #         ground_truth = self._getAttentionGT(subtask, feature_ids)
             
-            filter_1 = [idx for idx,i in enumerate(attn) if i>=(max(attn)-min(attn))*0.9+min(attn) and i>0]
-            # filter_2 = np.argwhere(np.array(attn)>=max(0,int(max(attn)))).flatten().tolist()
-            attended_objects = np.array(feature_ids)[filter_1].tolist()
-            ground_truth = sorted(ground_truth + [0] * (6-len(ground_truth)))
-            attended_objects = sorted(attended_objects + [0] * (6-len(attended_objects)))
-            subtask_attn_result['ground_truth'] = ground_truth
-            subtask_attn_result['attended_objects'] = attended_objects
+    #         filter_1 = [idx for idx,i in enumerate(attn) if i>=(max(attn)-min(attn))*0.9+min(attn) and i>0]
+    #         # filter_2 = np.argwhere(np.array(attn)>=max(0,int(max(attn)))).flatten().tolist()
+    #         attended_objects = np.array(feature_ids)[filter_1].tolist()
+    #         ground_truth = sorted(ground_truth + [0] * (6-len(ground_truth)))
+    #         attended_objects = sorted(attended_objects + [0] * (6-len(attended_objects)))
+    #         subtask_attn_result['ground_truth'] = ground_truth
+    #         subtask_attn_result['attended_objects'] = attended_objects
 
-            attention.append(subtask_attn_result)
+    #         attention.append(subtask_attn_result)
 
-        return attention
+    #     return attention
+
+    def _evalAttention(self, subtask, features, attn):
+        '''
+        subtask_attention = {
+            'keyword': 'red cup',                 -- command involving "red cup"
+            'ground_truth': [0,0,0,0,21,21],      -- two red cups
+            'attended_objects': [0,0,0,0,0,21]    -- one red cup attended to
+        }
+        '''
+        
+        subtask_attention = {'keyword': self._findKeyword(subtask)}
+        # _, _, features, attn = self.predictTrajectory(subtask, self._getRobotState(), 1)
+        feature_ids = [int(i) for i in features.T[0]]
+        ground_truth = self._getAttentionGT(subtask, feature_ids)
+        
+        filter_1 = [idx for idx,i in enumerate(attn) if i>=(max(attn)-min(attn))*0.95+min(attn) and i>0]
+        # filter_2 = np.argwhere(np.array(attn)>=max(0,int(max(attn)))).flatten().tolist()
+        attended_objects = np.array(feature_ids)[filter_1].tolist()
+        ground_truth = sorted(ground_truth + [0] * (6-len(ground_truth)))
+        attended_objects = sorted(attended_objects + [0] * (6-len(attended_objects)))
+        subtask_attention['ground_truth'] = ground_truth
+        subtask_attention['attended_objects'] = attended_objects
+
+        return subtask_attention
     
     def _getAttentionGT(self, command, feature_ids):
         # pick task
@@ -407,13 +435,13 @@ class Simulator(object):
         eval_result = {}
 
         for fid, fn in enumerate(files):
-            print("{} Run {}/{}".format(eval_type, fid, len(files)))
+            print("{} Run {}/{}".format(eval_type, fid+1, len(files)))
             eval_data = {}
             """
             eval_data:
                 'language': dict output of _getLanguageInfo (contains 'command', 'eval_type', 'subtasks', 'task_summary')
                 'object_detection': dict output of _evalObjectDetection (contains 'ground_truth', 'detected_objects')
-                'attention': list output of _evalAttention (contains 'keyword', 'ground_truth', 'attended_objects' for each subtask)
+                'attention': list of _evalAttention outputs (contains 'keyword', 'ground_truth', 'attended_objects' for each subtask)
                 'control': dict of pick and place success rates (contains 'pick_success', 'pick_total', 'place_success', 'place_total')
                 # 'trajectory': list of 7 DOF robot joints at each step
             """
@@ -425,15 +453,16 @@ class Simulator(object):
             self._createEnvironment(data["ints"], data["floats"])
             self.last_gripper = 0.0
             self.pyrep.step()
+            print(f"Executing {eval_type} command: ", data["task"])
 
             # generate subtasks based on task scene
             _, _, features, _ = self.predictTrajectory("", self._getRobotState(), 1)
             feature_ids = [int(i) for i in features.T[0]]
-            subtasks = semantic_parser(data["voice"], feature_ids)
+            subtasks = semantic_parser(data["task"], feature_ids)
 
-            eval_data["language"] = self._getLanguageInfo(data["voice"], eval_type, subtasks)
+            eval_data["language"] = self._getLanguageInfo(data["task"], eval_type, subtasks)
             eval_data["object_detection"] = self._evalObjectDetection(data["ints"], feature_ids)
-            eval_data["attention"] = self._evalAttention(subtasks)
+            eval_data["attention"] = []
             eval_data["control"] = {
                 'pick_success': 0,
                 'pick_total': eval_data['language']['task_summary']['pick_total'],
@@ -456,6 +485,10 @@ class Simulator(object):
                 self.last_gripper = r_state[6]
                 self._setJointVelocityFromTarget(r_state)
                 self.pyrep.step()
+
+                # evaluate attention
+                if len(eval_data["attention"]) <= subtask_idx:
+                    eval_data["attention"].append(self._evalAttention(rm_voice, features, attn))
                 
                 # current subtask complete
                 if subtask_phase > 0.95:
@@ -479,8 +512,8 @@ class Simulator(object):
 
     def evalDirect(self, runs):
         # files = glob.glob("../GDrive/dain/testdata/*_1.json")
-        sort_files = [f"sort_{i}.json" for i in range(1, 11)]
-        kit_files = [f"kit_{i}.json" for i in range(1, 11)]
+        sort_files = [f"{DATA_PATH}sorting_{i}.json" for i in range(2)]
+        kit_files = [f"{DATA_PATH}kitting_{i}.json" for i in range(2)]
         # self.node.get_logger().info("Using data directory with {} files".format(len(sort_files)+len(kit_files)))
         # files = files[:runs]
         # files = [f[:-6] for f in files]
@@ -559,9 +592,9 @@ class Simulator(object):
 
         self._createEnvironment(ints, floats)
         self.node.get_logger().info("Created new environment")
-        print('ints',ints)
-        print('floats',floats)
-        print('rstate', self._getRobotState())
+        # print('ints',ints)
+        # print('floats',floats)
+        # print('rstate', self._getRobotState())
         return ints, floats
     
     def _generateSetEnvironment(self, idx):
@@ -783,7 +816,7 @@ class Simulator(object):
         self._stopRobotMovement()
         self._setRobotJoints(np.deg2rad(DEFAULT_UR5_JOINTS))
         # self._setJointVelocityFromTarget(self._getRobotState())
-        print('robot arm position reset')
+        # print('robot arm position reset')
     
     def runManually(self):
         self.rm_voice = ""
@@ -796,10 +829,106 @@ class Simulator(object):
             else:
                 self.parseInput("")    
         print("Shutting down...")
+    
+    def collectData(self, num_samples, eval_type):
+        for i in range(num_samples):
+            sample_data = {}
+            print(f"generating env for {eval_type}_{i}")
+            ints, floats = self._generateEnvironment()
+            sample_data["name"] = f"{eval_type}_{i}"
+            sample_data["ints"] = ints
+            sample_data["floats"] = floats
+            sample_data["task"] = self._generateTaskCommand(ints, floats, eval_type)
+
+            with open(DATA_PATH+sample_data['name']+'.json', 'w') as f:
+                json.dump(sample_data, f)
+
+
+    def _generateTaskCommand(self, ints, floats, task_type):
+        n_bins = ints[0]
+        n_cups = ints[1]
+        bin_colors = [BIN_ID_TO_NAME[SIM_BIN_TO_FRCNN[i]][:-5] for i in ints[2:2+n_bins]]
+        cup_colors = [CUP_ID_TO_NAME[SIM_CUP_TO_FRCNN[i]][:-4] for i in ints[2+n_bins:]]
+
+        # "put all the ... cups in the ... dish"
+        if task_type == 'sorting':
+            task = "put all the {cup_color} cups in the {bin_color} dish"
+            
+            cup_color_choices = []
+            if n_cups <= 2:
+                cup_color_choices.append('')
+            for cup_color in ['red', 'blue']:
+                if cup_colors.count(cup_color) > 0:
+                    cup_color_choices.append(cup_color)
+
+            bin_color_choices = []
+            if n_bins == 1:
+                bin_color_choices.append('')
+            for bin_color in ['yellow', 'red', 'green']:
+                if bin_colors.count(bin_color) > 0:
+                    bin_color_choices.append(bin_color)
+            descs = {
+                'cup_color': np.random.choice(cup_color_choices),
+                'bin_color': np.random.choice(bin_color_choices)
+            }
+            
+        # "put n ... cups (and m ... cups) in the ... dish"
+        elif task_type == 'kitting':
+            task = "put {first_cup_desc} {second_cup_desc} in the {bin_color} dish"
+
+            # only one type of cups, so no second cup desc
+            if len(set(cup_colors)) == 1:
+                second_cup_desc = ''
+                first_cup_desc = _genCupDesc(n_cups, cup_colors[0])
+            
+            else:
+                colors = ['red','blue']
+                np.random.shuffle(colors)
+                first_cup_desc = _genCupDesc(cup_colors.count(colors[0]), colors[0])
+                second_cup_desc = np.random.choice(['and ' + _genCupDesc(cup_colors.count(colors[1]), colors[1]), ''])
+            
+            bin_color_choices = []
+            if n_bins == 1:
+                bin_color_choices.append('')
+            for bin_color in ['yellow', 'red', 'green']:
+                if bin_colors.count(bin_color) > 0:
+                    bin_color_choices.append(bin_color)
+            descs = {
+                'first_cup_desc': first_cup_desc,
+                'second_cup_desc': second_cup_desc,
+                'bin_color': np.random.choice(bin_color_choices)
+            }
+        
+        # format task string
+        task = task.format(**descs)
+        task = ' '.join(task.split())
+        return task
+
+def _genCupDesc(count, cup_color):
+    cup_desc = "{cup_count} {cup_color} {cup_or_cups}"
+    cup_count_choices = ['the', 'one']
+    count = np.random.randint(1,count+1)
+    if count == 1:
+        cup_count = np.random.choice(['the','one'])
+        cup_or_cups = 'cup'
+    elif count == 2:
+        cup_count = np.random.choice(['the', 'one', 'two'])
+        cup_or_cups = 'cup' if cup_count == 'one' else 'cups' if cup_count == 'two' else np.random.choice(['cup','cups'])
+    cup_desc = cup_desc.format(**{'cup_count':cup_count, 'cup_color':cup_color, 'cup_or_cups':cup_or_cups})
+    return cup_desc
+    
+
   
 if __name__ == "__main__":
     sim = Simulator()
-    if RUN_ON_TEST_DATA:
+    if COLLECT_DATA:
+        print(f"Collecting {NUM_SAMPLES} Samples for Sorting..")
+        sim.collectData(num_samples=NUM_SAMPLES, eval_type='sorting')
+        print('#################################################')
+        print(f"Collecting {NUM_SAMPLES} Samples for Kitting..")
+        sim.collectData(num_samples=NUM_SAMPLES, eval_type='kitting')
+        print("DATA COLLECTION COMPLETE")
+    elif RUN_ON_TEST_DATA:
         sim.evalDirect(runs=NUM_TESTED_DATA)
     else:
         sim.runManually()
