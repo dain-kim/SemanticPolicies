@@ -42,10 +42,14 @@ NORM_PATH           = "../GDrive/normalization_v2.pkl"
 # VREP_SCENE          = "../GDrive/testscene.ttt"
 VREP_SCENE          = "../GDrive/testscene2.ttt"
 VREP_SCENE          = os.getcwd() + "/" + VREP_SCENE
-CUP_ID_TO_NAME      = {21: 'red cup', 22: 'green cup', 23: 'blue cup'} # only red and blue are used
-BIN_ID_TO_NAME      = {16: 'yellow dish', 17: 'red dish', 18: 'green dish', 19: 'blue dish', 20: 'pink dish'} # HACK, also only yellow red green are used
-SIM_CUP_TO_FRCNN    = {1:21, 2:22, 3:23, 4:21, 5:22, 6:23}
-SIM_BIN_TO_FRCNN    = {1:16, 2:17, 3:18, 4:19, 5:20}
+# CUP_ID_TO_NAME      = {21: 'red cup', 22: 'green cup', 23: 'blue cup'}
+# BIN_ID_TO_NAME      = {16: 'yellow dish', 17: 'red dish', 18: 'green dish', 19: 'blue dish', 20: 'pink dish'}
+# SIM_CUP_TO_FRCNN    = {1:21, 2:22, 3:23, 4:21, 5:22, 6:23}
+# SIM_BIN_TO_FRCNN    = {1:16, 2:17, 3:18, 4:19, 5:20}
+CUP_ID_TO_NAME      = {21: 'red cup', 23: 'blue cup'} # only red and blue cups are used
+BIN_ID_TO_NAME      = {16: 'yellow dish', 17: 'red dish', 18: 'green dish'} # HACK, also only yellow red green bins are used
+SIM_CUP_TO_FRCNN    = {1:21, 3:23, 4:21, 6:23}
+SIM_BIN_TO_FRCNN    = {1:16, 2:17, 3:18}
 
 class Simulator(object):
     def __init__(self, args=None):
@@ -90,11 +94,11 @@ class Simulator(object):
         rgb_obs = np.flip(rgb_obs, (2))
         return rgb_obs
     
-    def _getSimulatorState(self):
-        _, s, _, _ = self.pyrep.script_call(function_name_at_script_name="getState@control_script",
-                                        script_handle_or_type=1,
-                                        ints=(), floats=(), strings=(), bytes="")
-        return s
+    # def _getSimulatorState(self):
+    #     _, s, _, _ = self.pyrep.script_call(function_name_at_script_name="getState@control_script",
+    #                                     script_handle_or_type=1,
+    #                                     ints=(), floats=(), strings=(), bytes="")
+    #     return s
     
     def _stopRobotMovement(self):
         _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="stopRobotMovement@control_script",
@@ -118,59 +122,27 @@ class Simulator(object):
                                         script_handle_or_type=1,
                                         ints=(), floats=joints, strings=(), bytes="")
 
-    def _setJointVelocityFromTarget_Direct(self, joints):
-        _, s, _, _ = self.pyrep.script_call(function_name_at_script_name="setJointVelocityFromTarget_Direct@control_script",
-                                        script_handle_or_type=1,
-                                        ints=(), floats=joints, strings=(), bytes="")
-    
-    def _dropBall(self, b_id):
-        _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="dropBall@control_script",
-                                        script_handle_or_type=1,
-                                        ints=(b_id,), floats=(), strings=(), bytes="")
-    
-    def _evalPouring(self):
-        i, _, _, _ = self.pyrep.script_call(function_name_at_script_name="evalPouring@control_script",
-                                        script_handle_or_type=1,
-                                        ints=(), floats=(), strings=(), bytes="")
-        return i
-    
-    # def _evalPlacing(self):
-    #     _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="evalPlacing@control_script",
+    # def _setJointVelocityFromTarget_Direct(self, joints):
+    #     _, s, _, _ = self.pyrep.script_call(function_name_at_script_name="setJointVelocityFromTarget_Direct@control_script",
     #                                     script_handle_or_type=1,
-    #                                     ints=(), floats=(), strings=(), bytes="")
+    #                                     ints=(), floats=joints, strings=(), bytes="")
 
     def _getClosestBin(self):
         i, _, _, _ = self.pyrep.script_call(function_name_at_script_name="getClosestBin@control_script",
                                         script_handle_or_type=1,
                                         ints=(), floats=(), strings=(), bytes="")
-        # if i[0] >= 0:
-        #     return True
-        # return False
         return i
     
     def _graspedObject(self):
         i, _, _, _ = self.pyrep.script_call(function_name_at_script_name="graspedObject@control_script",
                                         script_handle_or_type=1,
                                         ints=(), floats=(), strings=(), bytes="")
-        # if i[0] >= 0:
-        #     return True
-        # return False
         return i
     
-    def _setRobotInitial(self, joints):
-        _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="setRobotJoints@control_script",
-                                        script_handle_or_type=1,
-                                        ints=(), floats=joints, strings=(), bytes="")
-    
-    def _graspClosestContainer(self):
-        _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="graspClosestContainer@control_script",
-                                        script_handle_or_type=1,
-                                        ints=(), floats=(), strings=(), bytes="")
-
-    def _randomizeLight(self):
-        _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="randomizeLight@control_script",
-                                        script_handle_or_type=1,
-                                        ints=(), floats=(), strings=(), bytes="")
+    # def _setRobotInitial(self, joints):
+    #     _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="setRobotJoints@control_script",
+    #                                     script_handle_or_type=1,
+    #                                     ints=(), floats=joints, strings=(), bytes="")
 
     def _releaseObject(self):
         _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="releaseObject@control_script",
@@ -191,11 +163,6 @@ class Simulator(object):
             bytes=""
         )
 
-    def _getClosesObject(self):
-        oid, dist, _, _ = self.pyrep.script_call(function_name_at_script_name="getClosesObject@control_script",
-                                        script_handle_or_type=1,
-                                        ints=(), floats=(), strings=(), bytes="")
-        return oid, dist
 
     def dtype_with_channels_to_cvtype2(self, dtype, n_channels):
         numpy_type_to_cvtype = {'uint8': '8U', 'int8': '8S', 'uint16': '16U',
@@ -293,9 +260,9 @@ class Simulator(object):
             return 21
         elif oid == 128: # red cup
             return 21
-        elif oid == 129: # green cup
+        elif oid == 129: # green cup (not used)
             return 22
-        elif oid == 130: # green cup
+        elif oid == 130: # green cup (not used)
             return 22
         elif oid == 126: # blue cup
             return 23
@@ -338,12 +305,9 @@ class Simulator(object):
     def _evalObjectDetection(self, ground_truth, detected):
         '''
         detection = {
-            'ground_truth': [0,0,0,17,17,21],
-            'detected_objects': [0,0,0,0,17,21]
+            'ground_truth': [0,0,0,17,17,21],         -- one red cup, two red bins
+            'detected_objects': [0,0,0,0,17,21]       -- one red cup, one red bin detected
         }
-        e.g.
-        ground truth: [21,17,17,0,0,0] -- one red cup, two red bins # TODO update this doc
-        detected:     [21,17,0,0,0,0] -- one red cup, one red bin
         '''
         detection = {}
 
@@ -361,14 +325,11 @@ class Simulator(object):
         '''
         attention = [
             {
-                'keyword': 'red cup',
-                'ground_truth': [0,0,0,0,21,21],
-                'attended_objects': [0,0,0,0,0,21]
+                'keyword': 'red cup',                 -- command involving "red cup"
+                'ground_truth': [0,0,0,0,21,21],      -- two red cups
+                'attended_objects': [0,0,0,0,0,21]    -- one red cup attended to
             }
         ]
-        e.g.
-        ground truth: [1,0,0,0,0,0] -- command involving "red cup" # TODO update this doc
-        attn:         [.5,.9,0,0,0,0] -- misdetected red bin as red cup
         '''
         attention = []
 
@@ -394,25 +355,21 @@ class Simulator(object):
         # pick task
         if 'cup' in command:
             # generic pick task "pick up the cup"
-            if not any([i in command for i in ['red','green','blue']]):
-                # n_cups = sum([feature_ids.count(cup_id) for cup_id in [21,22,23]])
-                return [i for i in feature_ids if i in [21,22,23]]
+            if not any([i in command for i in ['red','blue']]):
+                return [i for i in feature_ids if i in list(CUP_ID_TO_NAME.keys())]
             # specific pick task "pick up the red cup"
             else:
-                cup_id = 21 if 'red' in command else 23 if 'blue' in command else 22
-                # n_cups = feature_ids.count(cup_id)
+                cup_id = 21 if 'red' in command else 23
                 return [i for i in feature_ids if i == cup_id]
 
         # place task
         elif 'dish' in command: # HACK
             # generic place task "pour it in the dish"
             if not any([i in command for i in ['yellow','red','green']]):
-                # n_bins = sum([feature_ids.count(bin_id) for bin_id in [16,17,18]])
-                return [i for i in feature_ids if i in [16,17,18]]
+                return [i for i in feature_ids if i in list(BIN_ID_TO_NAME.keys())]
             # specific pick task "pour it in the yellow dish"
             else:
                 bin_id = 16 if 'yellow' in command else 17 if 'red' in command else 18
-                # n_bowls = feature_ids.count(bin_id)
                 return [i for i in feature_ids if i == bin_id]
         
         return []
@@ -422,70 +379,8 @@ class Simulator(object):
             if keyword in subtask:
                 return keyword
         return ''
-    
-    def _evalControl(self):
-        '''
-        control = {
-            'pick_success': 0,
-            'pick_total': 0,
-            'place_success': 0,
-            'place_total': 0
-        }
-        '''
-        pass # TODO
 
-    def _getTargetPosition(self, data):
-        state  = self._getSimulatorState()
-        tcp    = state[12:14]
-        target = data["target/id"]
-        tp     = data["target/type"]
-        if tp == "cup":
-            cups   = data["ints"][2+data["ints"][0]:]
-            t_id   = [i for i in range(data["ints"][1]) if cups[i] == target][0] + data["ints"][0]
-            t_pos  = data["floats"][t_id*3:t_id*3+2]
-        else:
-            bowls  = data["ints"][2:2+data["ints"][0]]
-            t_id   = [i for i in range(data["ints"][0]) if bowls[i] == target][0]
-            t_pos  = data["floats"][t_id*3:t_id*3+2]
-
-        dist   = np.sqrt( np.power(tcp[0] - t_pos[0], 2) + np.power(tcp[1] - t_pos[1], 2) )
-
-        closest       = list(self._getClosesObject())
-        closest[0][0] = self._mapObjectIDs(closest[0][0])
-        closest[0][1] = self._mapObjectIDs(closest[0][1])
-        result = {}
-        result["target"]     = t_pos
-        result["tid"]        = target
-        result["tid/actual"] = closest
-        result["current"]    = tcp
-        result["distance"]   = dist
-        return result
-
-    def _maybeDropBall(self, state):
-        res = 0
-        if state[5] > 3.0:
-            self._dropBall(1)
-            # print('release object')
-            # self._releaseObject()
-            res = 1
-        if state[5] > 3.0 and self.last_rotation > state[5]:
-            self._dropBall(2)
-            # print('release object')
-            # self._releaseObject()
-            res = 2
-        self.last_rotation = state[5]
-        return res
-    
-    def _maybeRelease(self, state):
-        res = 0
-        if state[5] > 2.0:
-            print('releasing')
-            self._releaseObject()
-            res = 2
-        self.last_rotation = state[5]
-        return res
-    
-    def _getTaskCommandInfo(self, command, eval_type, subtasks):
+    def _getLanguageInfo(self, command, eval_type, subtasks):
         data = {}
         data["command"]   = command
         data["eval_type"] = eval_type
@@ -497,55 +392,16 @@ class Simulator(object):
         task_summary = {}
         task_summary['pick_total'] = sum([1 for i in subtasks if 'pick' in i])
         task_summary['place_total'] = sum([1 for i in subtasks if 'pour' in i]) # HACK
-        # task_summary['cup_total'] = sum([1 for i in subtasks if 'cup' in i])
-        # task_summary['bin_total'] = sum([1 for i in subtasks if 'dish' in i]) # HACK
-        task_summary['cup_by_type'] = {}
-        task_summary['bin_by_type'] = {}
+        task_summary['cup_types'] = {}
+        task_summary['bin_types'] = {}
         for cup_type in CUP_ID_TO_NAME.values():
-            task_summary['cup_by_type'][cup_type] = sum([1 for i in subtasks if cup_type in i]) # TODO fix to include unspecified
+            task_summary['cup_types'][cup_type] = sum([1 for i in subtasks if cup_type in i])
+        task_summary['cup_types']['unspecified'] = task_summary['pick_total'] - sum(task_summary['cup_types'].values())
         for bin_type in BIN_ID_TO_NAME.values():
-            task_summary['bin_by_type'][bin_type] = sum([1 for i in subtasks if bin_type in i])
+            task_summary['bin_types'][bin_type] = sum([1 for i in subtasks if bin_type in i])
+        task_summary['bin_types']['unspecified'] = task_summary['place_total'] - sum(task_summary['bin_types'].values())
         
         return task_summary
-        
-
-    def _getLanguateInformation(self, voice, phs):
-        def _quantity(voice):
-            res = 0
-            for word in self.voice.synonyms["little"]:
-                if voice.find(word) >= 0:
-                    res = 1
-            for word in self.voice.synonyms["much"]:
-                if voice.find(word) >= 0:
-                    res = 2
-            return res
-
-        def _difficulty(voice):
-            if phs == 2:
-                voice  = " ".join(voice.split()[4:])
-            shapes = self.voice.synonyms["round"] + self.voice.synonyms["square"]
-            colors = self.voice.synonyms["small"] + self.voice.synonyms["large"]  
-            sizes  = self.voice.synonyms["red"]   + self.voice.synonyms["green"] + self.voice.synonyms["blue"] + self.voice.synonyms["yellow"] + self.voice.synonyms["pink"]
-
-            shapes_used = 0
-            for word in shapes:
-                if voice.find(word) >= 0:
-                    shapes_used = 1
-            colors_used = 0
-            for word in colors:
-                if voice.find(word) >= 0:
-                    colors_used = 1
-            sizes_used = 0
-            for word in sizes:
-                if voice.find(word) >= 0:
-                    sizes_used = 1
-            return shapes_used + colors_used + sizes_used
-
-        data = {}
-        data["original"] = voice
-        data["features"] = _difficulty(voice)
-        data["quantity"] = _quantity(voice)
-        return data
     
     def evaluate(self, files, eval_type):
         eval_result = {}
@@ -555,10 +411,10 @@ class Simulator(object):
             eval_data = {}
             """
             eval_data:
-                'language': dict output of _getTaskCommandInfo (contains 'command', 'eval_type', 'subtasks', 'task_summary')
+                'language': dict output of _getLanguageInfo (contains 'command', 'eval_type', 'subtasks', 'task_summary')
                 'object_detection': dict output of _evalObjectDetection (contains 'ground_truth', 'detected_objects')
                 'attention': list output of _evalAttention (contains 'keyword', 'ground_truth', 'attended_objects' for each subtask)
-                'control': dict output of _evalControl (contains 'pick_success', 'pick_total', 'place_success', 'place_total')
+                'control': dict of pick and place success rates (contains 'pick_success', 'pick_total', 'place_success', 'place_total')
                 # 'trajectory': list of 7 DOF robot joints at each step
             """
             with open(fn, "r") as fh:
@@ -575,7 +431,7 @@ class Simulator(object):
             feature_ids = [int(i) for i in features.T[0]]
             subtasks = semantic_parser(data["voice"], feature_ids)
 
-            eval_data["language"] = self._getTaskCommandInfo(data["voice"], eval_type, subtasks)
+            eval_data["language"] = self._getLanguageInfo(data["voice"], eval_type, subtasks)
             eval_data["object_detection"] = self._evalObjectDetection(data["ints"], feature_ids)
             eval_data["attention"] = self._evalAttention(subtasks)
             eval_data["control"] = {
@@ -616,7 +472,6 @@ class Simulator(object):
                     self._stopRobotMovement()
                     subtask_idx += 1
                     cnt = 0
-                    # print("Running Task: " + subtasks[subtask_idx])
 
             eval_result[data["name"]] = eval_data
             
@@ -624,8 +479,8 @@ class Simulator(object):
 
     def evalDirect(self, runs):
         # files = glob.glob("../GDrive/dain/testdata/*_1.json")
-        sort_files = [f"sort_{i}.json" for i in range(1, 2)]
-        kit_files = [f"kit_{i}.json" for i in range(1, 2)]
+        sort_files = [f"sort_{i}.json" for i in range(1, 11)]
+        kit_files = [f"kit_{i}.json" for i in range(1, 11)]
         # self.node.get_logger().info("Using data directory with {} files".format(len(sort_files)+len(kit_files)))
         # files = files[:runs]
         # files = [f[:-6] for f in files]
@@ -642,7 +497,7 @@ class Simulator(object):
         # self.node.get_logger().info("Testing Kitting (Pick): {}/{} ({:.1f}%)".format(kit_summary['pick_successful'],kit_summary['pick_total'], 100.0*kit_summary['pick_successful']/kit_summary['pick_total']))
         # self.node.get_logger().info("Testing Kitting (Place): {}/{} ({:.1f}%)".format(kit_summary['place_successful'],kit_summary['place_total'], 100.0*kit_summary['place_successful']/kit_summary['place_total']))
 
-        # TODO
+        # TODO log stuff
         # p1_names = data["phase_1"].keys()
         # # p2_names = data["phase_2"].keys()
         # # names = [n for n in p1_names if n in p2_names]
@@ -685,12 +540,8 @@ class Simulator(object):
         self._setRobotJoints(np.deg2rad(DEFAULT_UR5_JOINTS))
 
         # Max 6 objects per scene
-        # ncups  = np.random.randint(1,5)
-        # nbowls = np.random.randint(1,7-ncups)
-        # bowls  = np.random.choice(5, size=nbowls, replace=False) + 1
-        # cups   = np.random.choice(6, size=ncups, replace=False) + 1
-        nbowls = np.random.randint(1,4)
-        ncups = np.random.randint(1, min(5, 7-nbowls))
+        nbowls = np.random.randint(1,4) # max 3 bins
+        ncups = np.random.randint(1, min(5, 7-nbowls)) # max 4 cups
         bowls = np.random.choice([1,2,3], size=nbowls, replace=False)
         cups = np.random.choice([1,3,4,6], size=ncups, replace=False)
 
@@ -711,7 +562,6 @@ class Simulator(object):
         print('ints',ints)
         print('floats',floats)
         print('rstate', self._getRobotState())
-        print('sim state', self._getSimulatorState())
         return ints, floats
     
     def _generateSetEnvironment(self, idx):
@@ -828,13 +678,6 @@ class Simulator(object):
         self.node.get_logger().info("Created new set environment {}".format(idx))
         return ints, floats
 
-    def simplifyVoice(self, voice):
-        simple = []
-        for word in voice.split(" "):
-            if word in self.voice.basewords.keys():
-                simple.append(self.voice.basewords[word])
-        return " ".join(simple)
-
     def parseInput(self, d_in):
         if d_in == "q":
             return False
@@ -882,21 +725,10 @@ class Simulator(object):
             tf_trajectory, phase, features, attn = self.predictTrajectory(self.rm_voice, self._getRobotState(), self.cnt)
             r_state                              = tf_trajectory[-1,:]
             # r_state = 6x robot joint position (j1, j2, j3, j4, j5, j6) + gripper position
-            # hack: no rotation
-            # r_state[5] = 1.5
-            # print('r_state',r_state)
-            # self._graspedObject()
 
             self.last_gripper    = r_state[6]
             # print('gripper:', self.last_gripper)
             self._setJointVelocityFromTarget(r_state)
-            # self._maybeDropBall(r_state)
-            # released = self._maybeRelease(r_state)
-            # hack for releasing object:
-            # if self.rm_voice.startswith('pour') and phase > 0.3:
-            #     print('releasing')
-            #     self._releaseObject()
-            #     phase = 0.95
 
             if phase > 0.98:
                 self.node.get_logger().info("Finished running trajectory with " + str(self.cnt) + " steps")
@@ -905,11 +737,11 @@ class Simulator(object):
                     self._releaseObject()
                     self.resetRobotArm()
                 self._stopRobotMovement()
-                print('features', [int(i) for i in features.T[0]])
-                print('attn', attn)
-                # print('sigmoid', sigmoid(attn))
-                print('filtered', [idx for idx,i in enumerate(attn) if i>=(max(attn)-min(attn))*0.9+min(attn) and i>0])
-                print('filter 2', np.argwhere(np.array(attn)>=max(0,int(max(attn)))).flatten().tolist())
+                # print('features', [int(i) for i in features.T[0]])
+                # print('attn', attn)
+                # # print('sigmoid', sigmoid(attn))
+                # print('filtered', [idx for idx,i in enumerate(attn) if i>=(max(attn)-min(attn))*0.9+min(attn) and i>0])
+                # print('filter 2', np.argwhere(np.array(attn)>=max(0,int(max(attn)))).flatten().tolist())
                 # self.rm_voice = ""
 
                 self.subtask_idx += 1
@@ -925,7 +757,6 @@ class Simulator(object):
                     self.rm_voice = ""
                     self.subtasks = []
                     self.subtask_idx = 0
-
 
         return True
     
