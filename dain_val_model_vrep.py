@@ -33,7 +33,7 @@ HEADLESS            = False
 USE_SHAPE_SIZE      = True
 # Run on the test data, or start the simulator in manual mode 
 # (manual mode will allow you to generate environments and type in your own commands)
-RUN_ON_TEST_DATA    = False
+RUN_ON_TEST_DATA    = True
 # How many of the 100 test-data do you want to test?
 NUM_TESTED_DATA     = 1
 # Where to find the normailization?
@@ -44,6 +44,7 @@ NORM_PATH           = "../GDrive/normalization_v2.pkl"
 VREP_SCENE          = "../GDrive/testscene2.ttt"
 VREP_SCENE          = os.getcwd() + "/" + VREP_SCENE
 CUP_ID_TO_NAME      = {21: 'red cup', 22: 'green cup', 23: 'blue cup', 0: 'NONE'}
+BIN_ID_TO_NAME      = {16: 'yellow bin', 17: 'red bin', 18: 'green bin', 19: 'blue bin', 20: 'pink bin', 0: 'NONE'}
 
 class Simulator(object):
     def __init__(self, args=None):
@@ -138,6 +139,20 @@ class Simulator(object):
         i, _, _, _ = self.pyrep.script_call(function_name_at_script_name="evalPouring@control_script",
                                         script_handle_or_type=1,
                                         ints=(), floats=(), strings=(), bytes="")
+        return i
+    
+    def _evalPlacing(self):
+        _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="evalPlacing@control_script",
+                                        script_handle_or_type=1,
+                                        ints=(), floats=(), strings=(), bytes="")
+
+    def _getClosestBin(self):
+        i, _, _, _ = self.pyrep.script_call(function_name_at_script_name="getClosestBin@control_script",
+                                        script_handle_or_type=1,
+                                        ints=(), floats=(), strings=(), bytes="")
+        # if i[0] >= 0:
+        #     return True
+        # return False
         return i
     
     def _graspedObject(self):
@@ -292,6 +307,18 @@ class Simulator(object):
             return 23
         elif oid == 131: # blue cup
             return 23
+
+        elif oid == 117: # yellow bin
+            return 16
+        elif oid == 116: # red bin
+            return 17
+        elif oid == 115: # green bin
+            return 18
+        elif oid == 114: # blue bin (not used)
+            return 19
+        elif oid == 113: # pink bin (not used)
+            return 20
+
         elif oid == -1: # nothing is grabbed
             return 0
         
@@ -300,12 +327,19 @@ class Simulator(object):
             print(oid)
             return 0
     
-    def _correctGrab(self, command, grabbed_obj):
+    def _correctGrab(self, command, grabbed_cup):
         if 'cup' not in command:
             return False
-        if grabbed_obj == 'NONE':
+        if grabbed_cup == 'NONE':
             return False
-        return grabbed_obj in command or not any([i in command for i in ['red','green','blue']])
+        return grabbed_cup in command or not any([i in command for i in ['red','green','blue']])
+    
+    def _correctPlace(self, command, placed_bin):
+        if 'dish' not in command:
+            return False
+        if placed_bin == 'NONE':
+            return False
+        return placed_bin in command or not any([i in command for i in ['red','green','blue']])
 
     def _getTargetPosition(self, data):
         state  = self._getSimulatorState()
@@ -398,12 +432,14 @@ class Simulator(object):
         return data
     
     def valSorting(self, files, feedback=True):
-        pick_successful = 0
+        pick_successful  = 0
+        pick_total       = 0
         place_successful = 0
+        place_total      = 0
         val_data    = {}
         nn_trajectory  = []
         ro_trajectory  = []
-        imgs = []
+        # imgs = []
         for fid, fn in enumerate(files):
             print("Sorting Run {}/{}".format(fid, len(files)))
             eval_data = {}
@@ -451,27 +487,36 @@ class Simulator(object):
                 
                 if phase > 0.95:
                     # check if robot grabbed the correct cup
-                    grasped_obj = self._graspedObject()[0]
-                    if grasped_obj > 0:
-                        grabbed_cup = CUP_ID_TO_NAME[self._mapObjectIDs(grasped_obj)]
-                        # print('subtask was',rm_voice)
-                        # print('robot grabbed', grabbed_cup)
-                        if self._correctGrab(rm_voice, grabbed_cup):
-                            print('successfully grabbed the right cup')
-                            pick_successful += 1
+                    if 'pick' in rm_voice:
+                        pick_total += 1
+                        grasped_cup = self._graspedObject()[0]
+                        if grasped_cup > 0:
+                            grabbed_cup = CUP_ID_TO_NAME[self._mapObjectIDs(grasped_cup)]
+                            # print('subtask was',rm_voice)
+                            # print('robot grabbed', grabbed_cup)
+                            if self._correctGrab(rm_voice, grabbed_cup):
+                                print('successfully grabbed the right cup')
+                                pick_successful += 1
                 
                     # check if robot placed cup in the correct bin
                     if 'pour' in rm_voice:
-                        print('HERE')
-                        print('robot pos', self._getRobotState())
-                        print('features', features)
-                        print('grabbed obj', self._mapObjectIDs(self._graspedObject()[0]))
-                        img = self._getCameraImage()
-                        print('img', img.shape)
-                        # cv2.imwrite(f"sort1_{round(time.time())}", img)
-                        imgs.append(img)
-                        # cv2.imshow('End Scene',img)
-                        # cv2.waitKey(0)
+                        place_total += 1
+                        # print('HERE')
+                        # print('robot pos', self._getRobotState())
+                        # print('features', features)
+                        # print('grabbed obj', self._mapObjectIDs(self._graspedObject()[0]))
+                        # self._evalPlacing()
+                        # print('closest bin to gripper', self._getClosestBin())
+                        placed_bin = self._getClosestBin()[0]
+                        if placed_bin > 0:
+                            placed_bin = BIN_ID_TO_NAME[self._mapObjectIDs(placed_bin)]
+                            if self._correctPlace(rm_voice, placed_bin):
+                                print('successfully placed in the right bin')
+                                place_successful += 1
+                        # img = self._getCameraImage()
+                        # print('img', img.shape)
+                        # imgs.append(img)
+
                         self._releaseObject()
                         self.resetRobotArm()
                     self._stopRobotMovement()
@@ -501,7 +546,7 @@ class Simulator(object):
             val_data[data["name"]] = eval_data
             eval_data["grab_success_rate"] = 0. # TODO update this
             
-        return pick_successful, val_data, imgs
+        return (pick_successful, pick_total), (place_successful, pick_total), val_data#, imgs
 
     def valPhase1(self, files, feedback=True):
         successfull = 0
@@ -611,49 +656,25 @@ class Simulator(object):
             
         return successfull, val_data
 
-    # def evalDirect(self, runs):
-    #     files = glob.glob("../GDrive/dain/testdata/*_1.json")
-    #     self.node.get_logger().info("Using data directory with {} files".format(len(files)))
-    #     files = files[:runs]
-    #     files = [f[:-6] for f in files]
-    #     self.node.get_logger().info("Running validation on {} files".format(len(files)))
-
-    #     data = {}
-    #     s_p1, e_data        = self.valPhase1(files)
-    #     data["phase_1"]     = e_data
-    #     s_p2, e_data        = self.valPhase2(files)
-    #     data["phase_2"]     = e_data
-
-    #     self.node.get_logger().info("Testing Sorting: {}/{} ({:.1f}%)".format(s_p1,  runs, 100.0 * float(s_p1)/float(runs)))
-    #     self.node.get_logger().info("Testing Kitting: {}/{} ({:.1f}%)".format(s_p2,  runs, 100.0 * float(s_p2)/float(runs)))
-
-    #     p1_names = data["phase_1"].keys()
-    #     p2_names = data["phase_2"].keys()
-    #     names = [n for n in p1_names if n in p2_names]
-    #     c_p2  = 0
-    #     for n in names:
-    #         if data["phase_1"][n]["success"] and data["phase_2"][n]["success"]:
-    #             c_p2  += 1
-
-    #     self.node.get_logger().info("Whole Task: {}/{} ({:.1f}%)".format(c_p2,  len(names), 100.0 * float(c_p2)  / float(len(names))))
-
-    #     with open("val_result.json", "w") as fh:
-    #         json.dump(data, fh)
     def evalDirect(self, runs):
         # files = glob.glob("../GDrive/dain/testdata/*_1.json")
-        files = [f"sort_1.json"]
-        self.node.get_logger().info("Using data directory with {} files".format(len(files)))
+        sort_files = [f"sort_{i}.json" for i in range(1, 11)]
+        kit_files = [f"kit_{i}.json" for i in range(1, 11)]
+        self.node.get_logger().info("Using data directory with {} files".format(len(sort_files)+len(kit_files)))
         # files = files[:runs]
         # files = [f[:-6] for f in files]
-        self.node.get_logger().info("Running validation on {} files".format(len(files)))
+        self.node.get_logger().info("Running validation on {} files".format(len(sort_files)+len(kit_files)))
 
         data = {}
-        s_p1, e_data, imgs        = self.valSorting(files)
-        data["phase_1"]     = e_data
-        # s_p2, e_data        = self.valPhase2(files)
-        # data["phase_2"]     = e_data
+        sort_pick_result, sort_place_result, sort_data        = self.valSorting(sort_files)
+        data["sort_data"]     = sort_data
+        kit_pick_result, kit_place_result, kit_data           = self.valSorting(kit_files)
+        data["kit_data"]     = kit_data
 
-        self.node.get_logger().info("Testing Sorting: {}/{} ({:.1f}%)".format(s_p1,  runs, 100.0 * float(s_p1)/float(runs)))
+        self.node.get_logger().info("Testing Sorting (Pick): {}/{} ({:.1f}%)".format(sort_pick_result[0],  sort_pick_result[1], 100.0 * float(sort_pick_result[0])/float(sort_pick_result[1])))
+        self.node.get_logger().info("Testing Sorting (Place): {}/{} ({:.1f}%)".format(sort_place_result[0],  sort_place_result[1], 100.0 * float(sort_place_result[0])/float(sort_place_result[1])))
+        self.node.get_logger().info("Testing Kitting (Pick): {}/{} ({:.1f}%)".format(kit_pick_result[0],  kit_pick_result[1], 100.0 * float(kit_pick_result[0])/float(kit_pick_result[1])))
+        self.node.get_logger().info("Testing Kitting (Place): {}/{} ({:.1f}%)".format(kit_place_result[0],  kit_place_result[1], 100.0 * float(kit_place_result[0])/float(kit_place_result[1])))
         # self.node.get_logger().info("Testing Kitting: {}/{} ({:.1f}%)".format(s_p2,  runs, 100.0 * float(s_p2)/float(runs)))
 
         # TODO
@@ -671,7 +692,6 @@ class Simulator(object):
         with open("val_result.json", "w") as fh:
             json.dump(data, fh)
         
-        return imgs
     
     def _generateEnvironment(self):
         def genPosition(prev):
@@ -850,21 +870,6 @@ class Simulator(object):
             print(ints)
             print(floats)
         
-        elif idx == "5":
-            ints = [2,3,1,2,1,3,4]
-            floats = []
-            prev   = []
-            for i in range(5):
-                prev.append(genPosition(prev))
-                floats += prev[-1]
-                if i < ints[0]:
-                    floats += [np.random.uniform(-math.pi/4.0,  math.pi/4.0)]
-                else:
-                    floats += [0.0]
-            print(ints)
-            print(floats)
-
-        
         self._createEnvironment(ints, floats)
         self.node.get_logger().info("Created new set environment {}".format(idx))
         return ints, floats
@@ -1002,7 +1007,7 @@ class Simulator(object):
 if __name__ == "__main__":
     sim = Simulator()
     if RUN_ON_TEST_DATA:
-        imgs = sim.evalDirect(runs=NUM_TESTED_DATA)
+        sim.evalDirect(runs=NUM_TESTED_DATA)
         # for i,img in enumerate(imgs):
             # cv2.imwrite(f"img_{i}.png", img)
             # show_image(img)

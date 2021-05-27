@@ -205,7 +205,7 @@ class NetworkService():
             boxes    = image_features["detection_boxes"][0, :6, :].numpy().astype(dtype=np.float32)
             
             # detect_objects(model, image, tf.convert_to_tensor([image], dtype=tf.uint8), boxes, classes)
-            #show_bounding_boxes(image, boxes, classes, scores)
+            # show_bounding_boxes(image, boxes, classes, scores)
             # model.saveBoundingBoxInfo(image, image_features)
             
             self.features = np.concatenate((np.expand_dims(classes,1), boxes), axis=1)

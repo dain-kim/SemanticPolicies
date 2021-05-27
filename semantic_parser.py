@@ -37,7 +37,7 @@ def semantic_parser(sentence, feature_ids=[]):
     keywords = {'put': 'VB', 'place': 'VB', 'pour': 'VB', 'pick': 'VB',
                 'all': 'PDT',
                 'cup': 'NN', 'cups': 'NNS',
-                'red': 'JJ', 'yellow': 'JJ', 'green': 'JJ', 'blue': 'JJ'}
+                'red': 'JJ', 'yellow': 'JJ', 'green': 'JJ', 'blue': 'JJ', 'pink': 'JJ'}
     for i,(word,tag) in enumerate(tagged):
         if word in keywords.keys():
             tagged[i] = (word, keywords[word])    
