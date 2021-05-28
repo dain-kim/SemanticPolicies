@@ -40,7 +40,7 @@ def semantic_parser(sentence, feature_ids=[]):
                 'red': 'JJ', 'yellow': 'JJ', 'green': 'JJ', 'blue': 'JJ', 'pink': 'JJ'}
     for i,(word,tag) in enumerate(tagged):
         if word in keywords.keys():
-            tagged[i] = (word, keywords[word])    
+            tagged[i] = (word, keywords[word])
     tags = [tag for (word, tag) in tagged]
 
     grammar_string = """

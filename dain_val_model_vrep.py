@@ -32,9 +32,9 @@ DEFAULT_UR5_JOINTS  = [105.0, -30.0, 120.0, 90.0, 60.0, 90.0]
 HEADLESS            = False
 # Run on the test data, or start the simulator in manual mode 
 # (manual mode will allow you to generate environments and type in your own commands)
-RUN_ON_TEST_DATA    = False
+RUN_ON_TEST_DATA    = True
 # How many of the 100 test-data do you want to test?
-NUM_TESTED_DATA     = 1
+NUM_TESTED_DATA     = 100
 # Where to find the normailization?
 NORM_PATH           = "../GDrive/normalization_v2.pkl"
 # Where to find the VRep scene file. This has to be an absolute path. 
@@ -43,7 +43,7 @@ NORM_PATH           = "../GDrive/normalization_v2.pkl"
 VREP_SCENE          = "../GDrive/testscene2.ttt"
 VREP_SCENE          = os.getcwd() + "/" + VREP_SCENE
 # Data collection vars
-COLLECT_DATA        = True
+COLLECT_DATA        = False
 NUM_SAMPLES         = 100
 DATA_PATH           = "./eval_data/"
 # CUP_ID_TO_NAME      = {21: 'red cup', 22: 'green cup', 23: 'blue cup'}
@@ -512,8 +512,8 @@ class Simulator(object):
 
     def evalDirect(self, runs):
         # files = glob.glob("../GDrive/dain/testdata/*_1.json")
-        sort_files = [f"{DATA_PATH}sorting_{i}.json" for i in range(2)]
-        kit_files = [f"{DATA_PATH}kitting_{i}.json" for i in range(2)]
+        sort_files = [f"{DATA_PATH}sorting_{i}.json" for i in range(runs)]
+        kit_files = [f"{DATA_PATH}kitting_{i}.json" for i in range(runs)]
         # self.node.get_logger().info("Using data directory with {} files".format(len(sort_files)+len(kit_files)))
         # files = files[:runs]
         # files = [f[:-6] for f in files]
@@ -906,14 +906,14 @@ class Simulator(object):
 
 def _genCupDesc(count, cup_color):
     cup_desc = "{cup_count} {cup_color} {cup_or_cups}"
-    cup_count_choices = ['the', 'one']
+    cup_count_choices = ['one']
     count = np.random.randint(1,count+1)
     if count == 1:
-        cup_count = np.random.choice(['the','one'])
+        cup_count = 'one'
         cup_or_cups = 'cup'
     elif count == 2:
-        cup_count = np.random.choice(['the', 'one', 'two'])
-        cup_or_cups = 'cup' if cup_count == 'one' else 'cups' if cup_count == 'two' else np.random.choice(['cup','cups'])
+        cup_count = np.random.choice(['one', 'two'])
+        cup_or_cups = 'cup' if cup_count == 'one' else 'cups'
     cup_desc = cup_desc.format(**{'cup_count':cup_count, 'cup_color':cup_color, 'cup_or_cups':cup_or_cups})
     return cup_desc
     
@@ -929,7 +929,9 @@ if __name__ == "__main__":
         sim.collectData(num_samples=NUM_SAMPLES, eval_type='kitting')
         print("DATA COLLECTION COMPLETE")
     elif RUN_ON_TEST_DATA:
+        s = time.time()
         sim.evalDirect(runs=NUM_TESTED_DATA)
+        print('EVALUATING ON', NUM_TESTED_DATA, 'TOOK:', round((time.time()-s)/3600, 3), 'hrs')
     else:
         sim.runManually()
     sim.shutdown()
