@@ -1,5 +1,5 @@
 import nltk
-# tag explanation: https://www.geeksforgeeks.org/part-speech-tagging-stop-words-using-nltk-python/
+# POS tag explanation: https://www.geeksforgeeks.org/part-speech-tagging-stop-words-using-nltk-python/
 # tree docs: https://www.nltk.org/_modules/nltk/tree.html
 # more tree docs: http://www.nltk.org/howto/tree.html
 # grammar docs: https://www.nltk.org/book/ch08.html and http://www.nltk.org/howto/generate.html
@@ -103,7 +103,7 @@ def semantic_parser(sentence, feature_ids=[]):
         return []
 
     for tree in trees:
-        tree.pretty_print()
+        # tree.pretty_print()
         if tree.label() != 'S':
             print('ERROR: sentence is not correctly structured')
             return []

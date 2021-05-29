@@ -22,9 +22,9 @@ import glob
 import json
 import pickle
 import copy
+import time
 
 from dain_object_detector import show_bounding_boxes
-import time
 from semantic_parser import semantic_parser
 
 

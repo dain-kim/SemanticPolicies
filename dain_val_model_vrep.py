@@ -30,21 +30,23 @@ from config import *
 # Default robot position. You don't need to change this
 DEFAULT_UR5_JOINTS  = [105.0, -30.0, 120.0, 90.0, 60.0, 90.0]
 # Evaluate headless or not
-HEADLESS            = True
-# Run on the test data, or start the simulator in manual mode 
-# (manual mode will allow you to generate environments and type in your own commands)
-RUN_ON_TEST_DATA    = True
-# How many of the 200 test-data do you want to test?
-NUM_TESTED_DATA     = 10
-# Where to find the normailization?
-NORM_PATH           = "../GDrive/normalization_v2.pkl"
+HEADLESS            = False
 # Where to find the VRep scene file. This has to be an absolute path. 
 # VREP_SCENE          = "../GDrive/NeurIPS2020.ttt"
 VREP_SCENE          = "../GDrive/testscene3.ttt"
 VREP_SCENE          = os.getcwd() + "/" + VREP_SCENE
-# Data collection vars
+# Where to find the normailization?
+NORM_PATH           = "../GDrive/normalization_v2.pkl"
+
+# Run on the test data, collect data for evalution, or start the simulator in manual mode
+# (manual mode will allow you to generate environments and type in your own commands)
+RUN_ON_TEST_DATA    = True
+# How many of the 300 samples in eval_data (per evaluation type) do you want to test?
+NUM_TESTED_DATA     = 300
+# Set this to True for data collection
 COLLECT_DATA        = False
-NUM_SAMPLES         = 200
+# Number of samples to collect (per evaluation type)
+NUM_SAMPLES         = 300
 DATA_PATH           = "./eval_data/"
 
 
@@ -329,10 +331,12 @@ class Simulator(object):
         task_summary['cup_types'] = {}
         task_summary['bin_types'] = {}
         for cup_type in CUP_ID_TO_NAME.values():
-            task_summary['cup_types'][cup_type] = sum([1 for i in subtasks if cup_type in i])
+            if cup_type != 'NONE':  # filler value
+                task_summary['cup_types'][cup_type] = sum([1 for i in subtasks if cup_type in i])
         task_summary['cup_types']['unspecified'] = task_summary['pick_total'] - sum(task_summary['cup_types'].values())
         for bin_type in BIN_ID_TO_NAME.values():
-            task_summary['bin_types'][bin_type] = sum([1 for i in subtasks if bin_type in i])
+            if bin_type != 'NONE': # filler value
+                task_summary['bin_types'][bin_type] = sum([1 for i in subtasks if bin_type in i])
         task_summary['bin_types']['unspecified'] = task_summary['place_total'] - sum(task_summary['bin_types'].values())
         
         return task_summary
@@ -341,10 +345,10 @@ class Simulator(object):
         eval_result = {}
 
         for fid, fn in enumerate(files):
-            print("{} Run {}/{}".format(eval_type, fid+1, len(files)))
+            
             eval_data = {}
             """
-            eval_data:
+            writes to and returns eval_data:
                 'language': dict output of _getLanguageInfo (contains 'command', 'eval_type', 'subtasks', 'task_summary')
                 'object_detection': dict output of _evalObjectDetection (contains 'ground_truth', 'detected_objects')
                 'attention': list of _evalAttention outputs (contains 'keyword', 'ground_truth', 'attended_objects' for each subtask)
@@ -353,14 +357,25 @@ class Simulator(object):
             """
             with open(fn, "r") as fh:
                 data = json.load(fh)
+            
+            # TEMP for adding images to thesis
+            thesis = np.random.randint(10) == 0
+                
+            print("[EVALUATION] {} Run {}/{}: {}".format(eval_type, fid+1, len(files), data["task"]))
 
             # initial env setup
             self._resetEnvironment()
             self._createEnvironment(data["ints"], data["floats"])
             self.last_gripper = 0.0
             self.pyrep.step()
-            print(f"Executing {eval_type} command: ", data["task"])
+            # print(f"Executing {eval_type} command: ", data["task"])
             self.image = self._getCameraImage()
+
+            # TEMP for adding images to thesis
+            if thesis:
+                print('saving images from {} for the thesis'.format(data["name"]))
+                img = cv2.cvtColor(self._getCameraImage().copy(), cv2.COLOR_BGR2RGB)
+                cv2.imwrite("./thesis_figures/{}_s.png".format(data["name"]), cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
             # generate subtasks based on task scene
             _, _, features, _ = self.predictTrajectory("", self._getRobotState(), 1, self.image)
@@ -396,9 +411,21 @@ class Simulator(object):
                 # evaluate attention
                 if len(eval_data["attention"]) <= subtask_idx:
                     eval_data["attention"].append(self._evalAttention(rm_voice, features, attn))
+
+                # TEMP for adding images to thesis
+                if thesis and cnt // 30 == 0:
+                    img = self._getCameraImage()
+                    img = cv2.cvtColor(img.copy(), cv2.COLOR_BGR2RGB)
+                    cv2.imwrite("./thesis_figures/{}_{}_{}.png".format(data["name"], subtask_idx, cnt // 30), cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
                 
                 # current subtask complete
                 if subtask_phase > 0.95:
+                    # TEMP for adding images to thesis
+                    if thesis:
+                        img = self._getCameraImage()
+                        img = cv2.cvtColor(img.copy(), cv2.COLOR_BGR2RGB)
+                        cv2.imwrite("./thesis_figures/{}_{}_f.png".format(data["name"], subtask_idx), cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+
                     # check if robot grabbed the correct cup
                     if 'pick' in rm_voice:
                         eval_data["control"]['pick_success'] += self._pickScore(rm_voice, self._graspedObject()[0])
@@ -414,16 +441,28 @@ class Simulator(object):
 
             eval_result[data["name"]] = eval_data
 
+            # TEMP for adding images to thesis
+            if thesis:
+                img = cv2.cvtColor(self._getCameraImage().copy(), cv2.COLOR_BGR2RGB)
+                cv2.imwrite("./thesis_figures/{}_f.png".format(data["name"]), cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+            print('    Pick Task: {}/{}'.format(eval_data["control"]["pick_success"],eval_data["control"]["pick_total"]))
+            print('    Place Task: {}/{}'.format(eval_data["control"]["place_success"],eval_data["control"]["place_total"]))
+
             if save_final_frame:
-                cv2.imwrite("./eval_final_frames/{}.png".format(data["name"]), self._getCameraImage())
+                img = cv2.cvtColor(self._getCameraImage().copy(), cv2.COLOR_BGR2RGB)
+                height, width, channels = img.shape
+                cv2.putText(img, 'Task: '+data["task"], (40,height-20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,0,0), 2)
+                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                cv2.imwrite("./eval_final_frames/{}.png".format(data["name"]), img)
             
+
         return eval_result
 
     def evalDirect(self, runs, save_results=True, save_final_frame=False):
         # files = glob.glob("../GDrive/dain/testdata/*_1.json")
         sort_files = [f"{DATA_PATH}sorting_{i}.json" for i in range(runs)]
         kit_files = [f"{DATA_PATH}kitting_{i}.json" for i in range(runs)]
-        self.node.get_logger().info("Running evaluation on {} files".format(len(sort_files)+len(kit_files)))
+        self.node.get_logger().info("Running evaluation on all {} files".format(len(sort_files)+len(kit_files)))
 
         data = {}
         sort_result     = self.evaluate(sort_files, 'sorting', save_final_frame=save_final_frame)
@@ -829,14 +868,12 @@ if __name__ == "__main__":
     if COLLECT_DATA:
         print(f"Collecting {NUM_SAMPLES} Samples for Sorting..")
         sim.collectData(num_samples=NUM_SAMPLES, eval_type='sorting')
-        print('#################################################')
         print(f"Collecting {NUM_SAMPLES} Samples for Kitting..")
         sim.collectData(num_samples=NUM_SAMPLES, eval_type='kitting')
-        print("DATA COLLECTION COMPLETE")
     elif RUN_ON_TEST_DATA:
         s = time.time()
         sim.evalDirect(runs=NUM_TESTED_DATA, save_results=True, save_final_frame=True)
-        print('EVALUATING ON', NUM_TESTED_DATA, 'TOOK:', round((time.time()-s)/3600, 3), 'hrs')
+        print(f"EVALUATION RAN ON {2*NUM_TESTED_DATA} SAMPLES FOR {round((time.time()-s)/3600, 2)} hrs / {int((time.time()-s)/60)} mins")
     else:
         sim.runManually()
     sim.shutdown()
