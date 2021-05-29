@@ -127,7 +127,7 @@ class NetworkService():
         return result
 
     def cbk_network_dmp_ros2(self, req, res):
-        res.trajectory, res.confidence, res.timesteps, res.weights, res.phase, res.features = self.cbk_network_dmp(req)
+        res.trajectory, res.confidence, res.timesteps, res.weights, res.phase, res.features, res.attn = self.cbk_network_dmp(req)
         return res
     
     def imgmsg_to_cv2(self, img_msg, desired_encoding="passthrough"):   
@@ -197,7 +197,8 @@ class NetworkService():
             image_features = model.frcnn(tf.convert_to_tensor([image], dtype=tf.uint8))
 
             scores   = image_features["detection_scores"][0, :6].numpy().astype(dtype=np.float32)
-            scores   = [0.0 if v < 0.5 else 1.0 for v in scores.tolist()]
+            # scores   = [0.0 if v < 0.5 else 1.0 for v in scores.tolist()]
+            scores   = [round(v, 2) for v in scores.tolist()]
 
             classes  = image_features["detection_classes"][0, :6].numpy().astype(dtype=np.int32)
             classes  = [v * scores[k] for k, v in enumerate(classes.tolist())]
@@ -211,10 +212,12 @@ class NetworkService():
             self.features = np.concatenate((np.expand_dims(classes,1), boxes), axis=1)
 
             self.history  = []
+            self.raw_a = np.array([])
+
 
         self.history.append(list(req.robot)) 
 
-        robot           = np.asarray(self.history, dtype=np.float32)
+        robot           = np.asarray(self.history, dtype=np.float32)        
         ### pseudocode
         # if first time calling the command,
         if self.first_call:
@@ -226,12 +229,15 @@ class NetworkService():
             self.subtask_steps = [0] * len(self.subtasks)
             self.first_call = False
             phase_value = 1
+            # self.plotImageRegions(self.imgmsg_to_cv2(req.image), {"detection_scores":scores, "detection_classes":classes}, self._a)
+
         # get the embedding of the current subtask
         try:
             task_embedding = self.subtask_embeddings[self.subtask_idx]
         except:
             # print('You shouldn\'t be here')
-            return ([], [], 0, [], 0.0, self.features.flatten().tolist())
+            print('no task embedding', req.language)
+            return ([], [], 0, [], 0.0, self.features.flatten().tolist(), self.raw_a.tolist())
         # call the model with the current embedding
         input_data = (
             # tf.convert_to_tensor(np.tile([self.language],[250, 1]), dtype=tf.int64), ## Original language input in tensor form
@@ -252,6 +258,7 @@ class NetworkService():
         self.trj_std    = tf.math.reduce_std(generated, axis=0).numpy()
         self.timesteps  = int(tf.math.reduce_mean(dmp_dt).numpy() * 500)
         self.b_weights  = tf.math.reduce_mean(weights, axis=0).numpy()
+        self.sfp_history.append(self.b_weights[-1,:,:])
 
         subtask_phase     = tf.math.reduce_mean(phase, axis=0).numpy()
         subtask_phase     = subtask_phase[-1,0]
@@ -263,7 +270,7 @@ class NetworkService():
             phase_value = 1
             subtask_phase = 1
             self.subtask_steps[self.subtask_idx] = 101
-            print("Forcing pouring rotation to stop")
+            # print("Forcing pouring rotation to stop")
 
         # determine if subtask is complete
         # if subtask is complete:
@@ -275,7 +282,7 @@ class NetworkService():
             #     print(generated)
             #     print(dmp_dt)
             # move on to the next index
-            print('moving onto the next subtask..')
+            # print('moving onto the next subtask..')
             self.subtask_idx += 1
             # print(self.subtask_idx)
             # self._next = True
@@ -283,7 +290,7 @@ class NetworkService():
             # if no more subtask left:
             if self.subtask_idx >= len(self.subtasks):
                 # reset all variables
-                print('-----DONE WITH ALL SUBTASKS-----')
+                # print('-----DONE WITH ALL SUBTASKS-----')
                 trj_len    = len(self.sfp_history)
                 basismodel = GaussianModel(degree=11, scale=0.012, observed_dof_names=("Base","Shoulder","Ellbow","Wrist1","Wrist2","Wrist3","Gripper"))
                 domain     = np.linspace(0, 1, trj_len, dtype=np.float64)
@@ -302,12 +309,13 @@ class NetworkService():
                 np.save("gen_trajectory", gen_trajectory)            
 
                 self.sfp_history = []
-                self.reset_state()
-                # return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), 1.0) 
+                # self.reset_state()
+                # self.plotTrajectory(self.trj_gen, self.trj_std, self.imgmsg_to_cv2(req.image))
+                # self.plotDMPTrajectory(self.trj_gen, self.trj_std, self.sfp_history)
 
         
         self.req_step += 1
-        return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), float(phase_value), self.features.flatten().tolist())
+        return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), float(phase_value), self.features.flatten().tolist(), self.raw_a.tolist())
     
     def idToText(self, id):
         names = ["", "Yellow Small Round", "Red Small Round", "Green Small Round", "Blue Small Round", "Pink Small Round",
@@ -318,6 +326,7 @@ class NetworkService():
         return names[id]
     
     def plotTrajectory(self, trj, error, image):
+        print('plotting trajectory')
         fig, ax = plt.subplots(3,3)
         fig.set_size_inches(9, 9)
 
@@ -330,6 +339,7 @@ class NetworkService():
             ax[idx,idy].set_ylim([-0.1, 1.1])
 
         ax[2,1].imshow(image)
+        fig.savefig(f"trajectory{round(time.time())}.png")
 
     def plotImageRegions(self, image_np, image_dict, atn):
         # Visualization of the results of a detection.
@@ -347,24 +357,27 @@ class NetworkService():
             
         fig = plt.figure()
         plt.imshow(image_np)
+        # plt.savefig(f"detection{round(time.time())}.png")
     
     def generate_subtasks(self, language, features, robot, training):
-        print('generating subtasks')
+        # print('generating subtasks')
         # self.subtasks = semantic_parser(language)
         self.subtasks = [language]  # TEMP override subtask generation since it's being done in val_model_vrep
         for subtask in self.subtasks:
-            tokenized = self.tokenize_subtask(subtask)
+            tokenized = self.tokenize_subtask(language)
             self.tokenized_subtasks.append(tokenized)
             sentence_embedding, a = model.get_attention(tokenized, features, training=training)
-            print('RAW A', a[0])
+            # print('RAW A', a[0])
+            self.raw_a = a[0].numpy()
             
             # task object selector
             a = tf.numpy_function(random_choose, [a], tf.float32)
+            self._a = a
             # print('a\n', a[0])
             a = tf.convert_to_tensor(a, dtype=tf.float32)
 
             self.As.append(a)
-    
+
             task_embedding = self.generate_task_embedding(a, features, sentence_embedding, robot)
             self.subtask_embeddings.append(task_embedding)
         
@@ -397,6 +410,40 @@ class NetworkService():
         cfeatures = tf.keras.backend.concatenate((cfeatures, sentence_embedding, start_joints), axis=1)
         # Save subtask embedding
         return cfeatures
+
+    def plotDMPTrajectory(self, y_pred, y_pred_std, phase):
+        print('plotting trajectory')
+        # y_true      = y_true.numpy()
+        # y_pred      = y_pred.numpy()
+        # y_pred_std  = y_pred_std.numpy()
+        # phase       = phase.numpy()
+        phase        = np.array(phase)
+        # dt          = dt.numpy() * 350.0
+        # p_dt        = p_dt.numpy()
+        trj_len      = y_pred.shape[0]
+        
+        fig, ax = plt.subplots(3,3)
+        fig.set_size_inches(9, 9)
+        for sp in range(7):
+            idx = sp // 3
+            idy = sp  % 3
+            ax[idx,idy].clear()
+
+            # GT Trajectory:
+            # ax[idx,idy].plot(range(trj_len), y_true[:,sp],   alpha=1.0, color='forestgreen')            
+            ax[idx,idy].plot(range(y_pred.shape[0]), y_pred[:,sp], alpha=0.75, color='mediumslateblue')
+            ax[idx,idy].errorbar(range(y_pred.shape[0]), y_pred[:,sp], xerr=None, yerr=y_pred_std[:,sp], alpha=0.25, fmt='none', color='mediumslateblue')
+            ax[idx,idy].set_ylim([-0.1, 1.1])
+            # ax[idx,idy].plot([dt, dt], [0.0,1.0], linestyle=":", color='forestgreen')
+        
+        ax[2,2].plot(range(y_pred.shape[0]), phase[:,0], color='orange')
+        # ax[2,2].plot([dt, dt], [0.0,1.0], linestyle=":", color='forestgreen')
+        # ax[2,2].plot([p_dt*350.0, p_dt*350.0], [0.0,1.0], linestyle=":", color='mediumslateblue')
+        ax[2,2].set_ylim([-0.1, 1.1])
+
+        # result = np.expand_dims(self.finishFigure(fig), 0)
+        plt.savefig(f"dmptrajectory{round(time.time())}.png")
+        plt.close()
 
 def random_choose(a, thresh=0.9):
     # sig = tf.nn.sigmoid(a)

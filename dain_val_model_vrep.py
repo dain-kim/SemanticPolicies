@@ -2,6 +2,7 @@
 
 import matplotlib
 matplotlib.use("TkAgg")
+import matplotlib.pyplot as plt
 import rclpy
 from policy_translation.srv import NetworkPT
 from pyrep import PyRep
@@ -19,41 +20,33 @@ import json
 import csv
 import os.path
 import os
-import matplotlib.pyplot as plt
 from PIL import Image
 from semantic_parser import semantic_parser
 import time
 from dain_object_detector import show_image
 from tensorflow import sigmoid
+from config import *
 
 # Default robot position. You don't need to change this
 DEFAULT_UR5_JOINTS  = [105.0, -30.0, 120.0, 90.0, 60.0, 90.0]
 # Evaluate headless or not
-HEADLESS            = False
+HEADLESS            = True
 # Run on the test data, or start the simulator in manual mode 
 # (manual mode will allow you to generate environments and type in your own commands)
 RUN_ON_TEST_DATA    = True
-# How many of the 100 test-data do you want to test?
-NUM_TESTED_DATA     = 100
+# How many of the 200 test-data do you want to test?
+NUM_TESTED_DATA     = 10
 # Where to find the normailization?
 NORM_PATH           = "../GDrive/normalization_v2.pkl"
 # Where to find the VRep scene file. This has to be an absolute path. 
 # VREP_SCENE          = "../GDrive/NeurIPS2020.ttt"
-# VREP_SCENE          = "../GDrive/testscene.ttt"
-VREP_SCENE          = "../GDrive/testscene2.ttt"
+VREP_SCENE          = "../GDrive/testscene3.ttt"
 VREP_SCENE          = os.getcwd() + "/" + VREP_SCENE
 # Data collection vars
 COLLECT_DATA        = False
-NUM_SAMPLES         = 100
+NUM_SAMPLES         = 200
 DATA_PATH           = "./eval_data/"
-# CUP_ID_TO_NAME      = {21: 'red cup', 22: 'green cup', 23: 'blue cup'}
-# BIN_ID_TO_NAME      = {16: 'yellow dish', 17: 'red dish', 18: 'green dish', 19: 'blue dish', 20: 'pink dish'}
-# SIM_CUP_TO_FRCNN    = {1:21, 2:22, 3:23, 4:21, 5:22, 6:23}
-# SIM_BIN_TO_FRCNN    = {1:16, 2:17, 3:18, 4:19, 5:20}
-CUP_ID_TO_NAME      = {21: 'red cup', 23: 'blue cup'} # only red and blue cups are used
-BIN_ID_TO_NAME      = {16: 'yellow dish', 17: 'red dish', 18: 'green dish'} # HACK, also only yellow red green bins are used
-SIM_CUP_TO_FRCNN    = {1:21, 3:23, 4:21, 6:23}
-SIM_BIN_TO_FRCNN    = {1:16, 2:17, 3:18}
+
 
 class Simulator(object):
     def __init__(self, args=None):
@@ -75,18 +68,10 @@ class Simulator(object):
         self.global_step   = 0
         self.normalization = pickle.load(open(NORM_PATH, mode="rb"), encoding="latin1")
         self.voice         = Voice(load=False)  
+        self.image         = None
 
         self.subtasks = []
         self.subtask_idx = 0
-    
-    def loadNlpCSV(self, path):
-        self.nlp_dict = {}
-        with open(path, "r") as fh:
-            csvreader = csv.reader(fh, delimiter=",")
-            for line in csvreader:
-                if line[1] != "":
-                    self.nlp_dict[line[0]+"_1.json"] = line[1]
-                    self.nlp_dict[line[0]+"_2.json"] = line[2]
 
     def shutdown(self):
         self.pyrep.stop()
@@ -97,12 +82,6 @@ class Simulator(object):
         rgb_obs = (np.asarray(rgb_obs) * 255).astype(dtype=np.uint8)
         rgb_obs = np.flip(rgb_obs, (2))
         return rgb_obs
-    
-    # def _getSimulatorState(self):
-    #     _, s, _, _ = self.pyrep.script_call(function_name_at_script_name="getState@control_script",
-    #                                     script_handle_or_type=1,
-    #                                     ints=(), floats=(), strings=(), bytes="")
-    #     return s
     
     def _stopRobotMovement(self):
         _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="stopRobotMovement@control_script",
@@ -117,19 +96,14 @@ class Simulator(object):
         return state.tolist()
 
     def _setRobotJoints(self, joints):
-            result = self.pyrep.script_call(function_name_at_script_name="setRobotJoints@control_script",
-                                            script_handle_or_type=1,
-                                            ints=(), floats=joints, strings=(), bytes="")
+        result = self.pyrep.script_call(function_name_at_script_name="setRobotJoints@control_script",
+                                        script_handle_or_type=1,
+                                        ints=(), floats=joints, strings=(), bytes="")
 
     def _setJointVelocityFromTarget(self, joints):
         _, s, _, _ = self.pyrep.script_call(function_name_at_script_name="setJointVelocityFromTarget@control_script",
                                         script_handle_or_type=1,
                                         ints=(), floats=joints, strings=(), bytes="")
-
-    # def _setJointVelocityFromTarget_Direct(self, joints):
-    #     _, s, _, _ = self.pyrep.script_call(function_name_at_script_name="setJointVelocityFromTarget_Direct@control_script",
-    #                                     script_handle_or_type=1,
-    #                                     ints=(), floats=joints, strings=(), bytes="")
 
     def _getClosestBin(self):
         i, _, _, _ = self.pyrep.script_call(function_name_at_script_name="getClosestBin@control_script",
@@ -142,11 +116,6 @@ class Simulator(object):
                                         script_handle_or_type=1,
                                         ints=(), floats=(), strings=(), bytes="")
         return i
-    
-    # def _setRobotInitial(self, joints):
-    #     _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="setRobotJoints@control_script",
-    #                                     script_handle_or_type=1,
-    #                                     ints=(), floats=joints, strings=(), bytes="")
 
     def _releaseObject(self):
         _, _, _, _ = self.pyrep.script_call(function_name_at_script_name="releaseObject@control_script",
@@ -166,7 +135,6 @@ class Simulator(object):
             strings=(), 
             bytes=""
         )
-
 
     def dtype_with_channels_to_cvtype2(self, dtype, n_channels):
         numpy_type_to_cvtype = {'uint8': '8U', 'int8': '8S', 'uint16': '16U',
@@ -200,9 +168,11 @@ class Simulator(object):
 
         return img_msg
     
-    def predictTrajectory(self, voice, state, cnt):
+    def predictTrajectory(self, voice, state, cnt, image=None):
         norm         = np.take(self.normalization["values"], indices=[0,1,2,3,4,5,30], axis=1)
-        image        = self._getCameraImage()
+        # Only doing object detection in the beginning of the pick-place subtask pair
+        if image is None:
+            image        = self._getCameraImage()
 
         robot_state    = state
         try:
@@ -258,59 +228,26 @@ class Simulator(object):
 
     def _generalizeVoice(self, voice):
         return voice
-
-    def _mapObjectIDs(self, oid):
-        if oid == 127: # red cup
-            return 21
-        elif oid == 128: # red cup
-            return 21
-        elif oid == 129: # green cup (not used)
-            return 22
-        elif oid == 130: # green cup (not used)
-            return 22
-        elif oid == 126: # blue cup
-            return 23
-        elif oid == 131: # blue cup
-            return 23
-
-        elif oid == 117: # yellow bin
-            return 16
-        elif oid == 116: # red bin
-            return 17
-        elif oid == 115: # green bin
-            return 18
-        elif oid == 114: # blue bin (not used)
-            return 19
-        elif oid == 113: # pink bin (not used)
-            return 20
-
-        elif oid == -1: # nothing is grabbed
-            return 0
-        
-        else:
-            print('unidentified object in mapOIDs')
-            print(oid)
-            return 0
     
     def _pickScore(self, command, grabbed_cup):
         # nothing is grabbed
         if grabbed_cup == -1:
             return 0
-        grabbed_cup = CUP_ID_TO_NAME[self._mapObjectIDs(grabbed_cup)]
-        return int(grabbed_cup in command or not any([i in command for i in ['red','green','blue']]))
+        grabbed_cup = CUP_ID_TO_NAME[mapObjectIDs(grabbed_cup)]
+        return int(grabbed_cup in command or not any([i in command for i in ['red','blue']]))
     
     def _placeScore(self, command, placed_bin):
         # not near a bin
         if placed_bin == -1:
             return 0
-        placed_bin = BIN_ID_TO_NAME[self._mapObjectIDs(placed_bin)]
+        placed_bin = BIN_ID_TO_NAME[mapObjectIDs(placed_bin)]
         return int(placed_bin in command or not any([i in command for i in ['yellow','red','green']]))
     
     def _evalObjectDetection(self, ground_truth, detected):
         '''
         detection = {
-            'ground_truth': [0,0,0,17,17,21],         -- one red cup, two red bins
-            'detected_objects': [0,0,0,0,17,21]       -- one red cup, one red bin detected
+            'ground_truth': [0,0,0,17,21,21],         -- one green bin, two red cups
+            'detected_objects': [0,0,0,0,17,21]       -- one green bin, one red cup detected
         }
         '''
         detection = {}
@@ -325,36 +262,6 @@ class Simulator(object):
 
         return detection
 
-    # def _evalAttention(self, subtasks):
-    #     '''
-    #     attention = [
-    #         {
-    #             'keyword': 'red cup',                 -- command involving "red cup"
-    #             'ground_truth': [0,0,0,0,21,21],      -- two red cups
-    #             'attended_objects': [0,0,0,0,0,21]    -- one red cup attended to
-    #         }
-    #     ]
-    #     '''
-    #     attention = []
-
-    #     for subtask in subtasks:
-    #         subtask_attn_result = {'keyword': self._findKeyword(subtask)}
-    #         _, _, features, attn = self.predictTrajectory(subtask, self._getRobotState(), 1)
-    #         feature_ids = [int(i) for i in features.T[0]]
-    #         ground_truth = self._getAttentionGT(subtask, feature_ids)
-            
-    #         filter_1 = [idx for idx,i in enumerate(attn) if i>=(max(attn)-min(attn))*0.9+min(attn) and i>0]
-    #         # filter_2 = np.argwhere(np.array(attn)>=max(0,int(max(attn)))).flatten().tolist()
-    #         attended_objects = np.array(feature_ids)[filter_1].tolist()
-    #         ground_truth = sorted(ground_truth + [0] * (6-len(ground_truth)))
-    #         attended_objects = sorted(attended_objects + [0] * (6-len(attended_objects)))
-    #         subtask_attn_result['ground_truth'] = ground_truth
-    #         subtask_attn_result['attended_objects'] = attended_objects
-
-    #         attention.append(subtask_attn_result)
-
-    #     return attention
-
     def _evalAttention(self, subtask, features, attn):
         '''
         subtask_attention = {
@@ -365,7 +272,6 @@ class Simulator(object):
         '''
         
         subtask_attention = {'keyword': self._findKeyword(subtask)}
-        # _, _, features, attn = self.predictTrajectory(subtask, self._getRobotState(), 1)
         feature_ids = [int(i) for i in features.T[0]]
         ground_truth = self._getAttentionGT(subtask, feature_ids)
         
@@ -383,7 +289,7 @@ class Simulator(object):
         # pick task
         if 'cup' in command:
             # generic pick task "pick up the cup"
-            if not any([i in command for i in ['red','blue']]):
+            if not any([i in command for i in list(CUP_ID_TO_NAME.values())]):
                 return [i for i in feature_ids if i in list(CUP_ID_TO_NAME.keys())]
             # specific pick task "pick up the red cup"
             else:
@@ -393,11 +299,11 @@ class Simulator(object):
         # place task
         elif 'dish' in command: # HACK
             # generic place task "pour it in the dish"
-            if not any([i in command for i in ['yellow','red','green']]):
+            if not any([i in command for i in list(BIN_ID_TO_NAME.values())]):
                 return [i for i in feature_ids if i in list(BIN_ID_TO_NAME.keys())]
             # specific pick task "pour it in the yellow dish"
             else:
-                bin_id = 16 if 'yellow' in command else 17 if 'red' in command else 18
+                bin_id = 15 if 'yellow' in command else 16 if 'red' in command else 17 # TODO make this cleaner
                 return [i for i in feature_ids if i == bin_id]
         
         return []
@@ -431,7 +337,7 @@ class Simulator(object):
         
         return task_summary
     
-    def evaluate(self, files, eval_type):
+    def evaluate(self, files, eval_type, save_final_frame=False):
         eval_result = {}
 
         for fid, fn in enumerate(files):
@@ -454,9 +360,10 @@ class Simulator(object):
             self.last_gripper = 0.0
             self.pyrep.step()
             print(f"Executing {eval_type} command: ", data["task"])
+            self.image = self._getCameraImage()
 
             # generate subtasks based on task scene
-            _, _, features, _ = self.predictTrajectory("", self._getRobotState(), 1)
+            _, _, features, _ = self.predictTrajectory("", self._getRobotState(), 1, self.image)
             feature_ids = [int(i) for i in features.T[0]]
             subtasks = semantic_parser(data["task"], feature_ids)
 
@@ -469,17 +376,17 @@ class Simulator(object):
                 'place_success': 0,
                 'place_total': eval_data['language']['task_summary']['place_total']
             }
-            # eval_data["trajectory"] = []  # Not collecting trajectory to save space
+            # eval_data["trajectory"] = []  # Skipping trajectory collection to save space
 
             subtask_idx = 0
-            cnt   = 0
+            cnt = 0
             
             while len(subtasks) > subtask_idx:
                 # progress simulation
                 cnt += 1
                 state = self._getRobotState()
                 rm_voice = subtasks[subtask_idx]
-                tf_trajectory, subtask_phase, features, attn = self.predictTrajectory(rm_voice, state, cnt)
+                tf_trajectory, subtask_phase, features, attn = self.predictTrajectory(rm_voice, state, cnt, self.image)
                 r_state = tf_trajectory[-1,:]
                 # eval_data["trajectory"].append(r_state.tolist())
                 self.last_gripper = r_state[6]
@@ -495,11 +402,10 @@ class Simulator(object):
                     # check if robot grabbed the correct cup
                     if 'pick' in rm_voice:
                         eval_data["control"]['pick_success'] += self._pickScore(rm_voice, self._graspedObject()[0])
-                
+
                     # check if robot placed cup in the correct bin
                     elif 'pour' in rm_voice:
                         eval_data["control"]['place_success'] += self._placeScore(rm_voice, self._getClosestBin()[0]) 
-                        self._releaseObject()
                         self.resetRobotArm()
 
                     self._stopRobotMovement()
@@ -507,21 +413,21 @@ class Simulator(object):
                     cnt = 0
 
             eval_result[data["name"]] = eval_data
+
+            if save_final_frame:
+                cv2.imwrite("./eval_final_frames/{}.png".format(data["name"]), self._getCameraImage())
             
         return eval_result
 
-    def evalDirect(self, runs):
+    def evalDirect(self, runs, save_results=True, save_final_frame=False):
         # files = glob.glob("../GDrive/dain/testdata/*_1.json")
         sort_files = [f"{DATA_PATH}sorting_{i}.json" for i in range(runs)]
         kit_files = [f"{DATA_PATH}kitting_{i}.json" for i in range(runs)]
-        # self.node.get_logger().info("Using data directory with {} files".format(len(sort_files)+len(kit_files)))
-        # files = files[:runs]
-        # files = [f[:-6] for f in files]
         self.node.get_logger().info("Running evaluation on {} files".format(len(sort_files)+len(kit_files)))
 
         data = {}
-        sort_result     = self.evaluate(sort_files, 'sorting')
-        kit_result      = self.evaluate(kit_files, 'kitting')
+        sort_result     = self.evaluate(sort_files, 'sorting', save_final_frame=save_final_frame)
+        kit_result      = self.evaluate(kit_files, 'kitting', save_final_frame=save_final_frame)
         data["sorting"] = sort_result
         data["kitting"] = kit_result
 
@@ -543,8 +449,9 @@ class Simulator(object):
         # self.node.get_logger().info("Whole Task: {}/{} ({:.1f}%)".format(c_p2,  len(names), 100.0 * float(c_p2)  / float(len(names))))
         self.node.get_logger().info("Finished Running Evaluation!")
 
-        with open("val_result.json", "w") as fh:
-            json.dump(data, fh)
+        if save_results:
+            with open("val_result.json", "w") as fh:
+                json.dump(data, fh)
         
     
     def _generateEnvironment(self):
@@ -570,13 +477,19 @@ class Simulator(object):
                 if r_py > 0.075:
                     done = False
             return [px, py]
+        
+        # This doesn't seem to do anything
         self._setRobotJoints(np.deg2rad(DEFAULT_UR5_JOINTS))
+
+        # tmp_joints = np.array([0.83259571,-1.52359878,1.0943951,1.07079633,0.04719755,1.07079633])
+        # self._setRobotJoints(tmp_joints)
+        # print('setting joints',tmp_joints)
 
         # Max 6 objects per scene
         nbowls = np.random.randint(1,4) # max 3 bins
         ncups = np.random.randint(1, min(5, 7-nbowls)) # max 4 cups
-        bowls = np.random.choice([1,2,3], size=nbowls, replace=False)
-        cups = np.random.choice([1,3,4,6], size=ncups, replace=False)
+        bowls = np.random.choice(list(SIM_BIN_TO_FRCNN.keys()), size=nbowls, replace=False)
+        cups = np.random.choice(list(SIM_CUP_TO_FRCNN.keys()), size=ncups, replace=False)
 
         ints   = [nbowls, ncups] + bowls.tolist() + cups.tolist()
         floats = []
@@ -668,10 +581,10 @@ class Simulator(object):
             floats = [-0.6706283735164196, -0.367048866651563, 0.5677358902060654, -0.38444069922215474, -0.5240614358568401, 0.0, -0.005800754313754042, -0.6434291140615598, 0.0]
             # floats = [-0.4841615916276253, -0.3829838314703341, -0.05021171096973509, -0.7201993483166631, -0.12716774121561158, 0.0, -0.34769231510157994, -0.6539479616451864, 0.0]
 
-        # Sim 3: two cups with same colors and one bin
+        # Sim 3: two cups with different colors and one bin
         # "put the red cup in the bin"
         elif idx == "3":
-            ints = [1,2,2, 1,2]
+            ints = [1,2,2, 1,3]
             floats = []
             prev   = []
             for i in range(3):
@@ -681,9 +594,10 @@ class Simulator(object):
                     floats += [np.random.uniform(-math.pi/4.0,  math.pi/4.0)]
                 else:
                     floats += [0.0]
-
+            
+            floats = [-0.13313872582982822, -0.5924441193937878, -0.7625972304941389, -0.47842062687531334, -0.1622049041966076, 0.0, -0.7335813980692465, 0.005680679353973095, 0.0]
             # floats = [-0.6706283735164196, -0.367048866651563, 0.5677358902060654, -0.38444069922215474, -0.5240614358568401, 0.0, -0.005800754313754042, -0.5434291140615598, 0.0]
-            floats = [-0.4841615916276253, -0.3829838314703341, -0.05021171096973509, -0.7201993483166631, -0.00716774121561158, 0.0, -0.34769231510157994, -0.6539479616451864, 0.0]
+            # floats = [-0.4841615916276253, -0.3829838314703341, -0.05021171096973509, -0.7201993483166631, -0.00716774121561158, 0.0, -0.34769231510157994, -0.6539479616451864, 0.0]
 
         # Sim 4: several cups and several bins
         # "put all the red cups in the blue bin"
@@ -718,7 +632,7 @@ class Simulator(object):
             self.rm_voice     = ""
             self.last_gripper = 0.0
             self._generateEnvironment()
-        if d_in in ("0", "1", "2", "3", "4", "5"):
+        if d_in in ("0", "1", "2", "3", "4"):
             self.rm_voice     = ""
             self.last_gripper = 0.0
             self._generateSetEnvironment(d_in)
@@ -729,8 +643,7 @@ class Simulator(object):
             self._resetEnvironment()
             self.subtasks = []
             self.subtask_idx = 0
-        if d_in == 'd':
-            self.releaseRobotGrip()
+            self.image = None
         if d_in == 's':
             print('current robot state', self._getRobotState())
             q_prime = np.append(np.deg2rad(DEFAULT_UR5_JOINTS),[0.0])
@@ -742,65 +655,59 @@ class Simulator(object):
         elif d_in.startswith("t "):
             # self.rm_voice = d_in[2:]
             # get the scene objects
-            _, _, features, _ = self.predictTrajectory("", self._getRobotState(), 1)
+            self.image = self._getCameraImage()
+            _, _, features, _ = self.predictTrajectory("", self._getRobotState(), 1, self.image)
             feature_ids = [int(i) for i in features.T[0]]
+            print('feature ids', feature_ids)
             self.subtasks = semantic_parser(d_in[2:], feature_ids)
             if self.subtasks == []:
                 print('ERROR: command is malformed')
                 return True
+
+            self.cnt = 0
             self.subtask_idx = 0
             self.rm_voice = self.subtasks[self.subtask_idx]
-            self.cnt      = 0
             print("Running Task: " + self.rm_voice)
         elif self.rm_voice != "" and  d_in == "":
             # run robot
             self.cnt += 1
-            tf_trajectory, phase, features, attn = self.predictTrajectory(self.rm_voice, self._getRobotState(), self.cnt)
-            r_state                              = tf_trajectory[-1,:]
-            # r_state = 6x robot joint position (j1, j2, j3, j4, j5, j6) + gripper position
-
+            tf_trajectory, phase, features, attn = self.predictTrajectory(self.rm_voice, self._getRobotState(), self.cnt, self.image)
+            r_state = tf_trajectory[-1,:]
             self.last_gripper    = r_state[6]
-            # print('gripper:', self.last_gripper)
             self._setJointVelocityFromTarget(r_state)
 
             if phase > 0.98:
                 self.node.get_logger().info("Finished running trajectory with " + str(self.cnt) + " steps")
-                # self._releaseObject()
                 if 'pour' in self.subtasks[self.subtask_idx]:
-                    self._releaseObject()
+                    # self._releaseObject()
                     self.resetRobotArm()
+                
                 self._stopRobotMovement()
-                # print('features', [int(i) for i in features.T[0]])
-                # print('attn', attn)
-                # # print('sigmoid', sigmoid(attn))
-                # print('filtered', [idx for idx,i in enumerate(attn) if i>=(max(attn)-min(attn))*0.9+min(attn) and i>0])
-                # print('filter 2', np.argwhere(np.array(attn)>=max(0,int(max(attn)))).flatten().tolist())
-                # self.rm_voice = ""
-
                 self.subtask_idx += 1
                 # if subtasks remain, keep going
                 if len(self.subtasks) > self.subtask_idx:
                     print('moving onto next subtask')
-                    self.rm_voice = self.subtasks[self.subtask_idx]
                     self.cnt = 0
+                    self.rm_voice = self.subtasks[self.subtask_idx]
                     print("Running Task: " + self.rm_voice)
                 else:
-                    if self.subtasks[-1].startswith('pour'):
-                        self.resetRobotArm()
                     self.rm_voice = ""
                     self.subtasks = []
                     self.subtask_idx = 0
 
         return True
     
-    def releaseRobotGrip(self):
-        self._releaseObject()
-        self.last_gripper = 0.0
+    # def releaseRobotGrip(self):
+    #     self._releaseObject()
+    #     self.last_gripper = 0.0
     
     def resetRobotArm(self):
-        self._stopRobotMovement()
-        self.rm_voice     = ""
-        # self._releaseObject()
+        # self._stopRobotMovement()
+        # self.rm_voice     = ""
+        self._releaseObject()
+        self.last_gripper = 0.0
+        
+        # Move arm back to the center
         q_prime = np.append(np.deg2rad(DEFAULT_UR5_JOINTS),[0.0])
         q = self._getRobotState()
         error = np.linalg.norm(q - q_prime)
@@ -814,9 +721,8 @@ class Simulator(object):
             error = np.linalg.norm(q - q_prime)
             steps = max(2, int(error*30))
         self._stopRobotMovement()
-        self._setRobotJoints(np.deg2rad(DEFAULT_UR5_JOINTS))
-        # self._setJointVelocityFromTarget(self._getRobotState())
-        # print('robot arm position reset')
+        
+        self.image = self._getCameraImage()
     
     def runManually(self):
         self.rm_voice = ""
@@ -916,9 +822,8 @@ def _genCupDesc(count, cup_color):
         cup_or_cups = 'cup' if cup_count == 'one' else 'cups'
     cup_desc = cup_desc.format(**{'cup_count':cup_count, 'cup_color':cup_color, 'cup_or_cups':cup_or_cups})
     return cup_desc
-    
 
-  
+
 if __name__ == "__main__":
     sim = Simulator()
     if COLLECT_DATA:
@@ -930,7 +835,7 @@ if __name__ == "__main__":
         print("DATA COLLECTION COMPLETE")
     elif RUN_ON_TEST_DATA:
         s = time.time()
-        sim.evalDirect(runs=NUM_TESTED_DATA)
+        sim.evalDirect(runs=NUM_TESTED_DATA, save_results=True, save_final_frame=True)
         print('EVALUATING ON', NUM_TESTED_DATA, 'TOOK:', round((time.time()-s)/3600, 3), 'hrs')
     else:
         sim.runManually()

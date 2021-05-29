@@ -42,20 +42,20 @@ class TBoardGraphs():
         with self.__tboard_validation.as_default():
             tf.summary.scalar(name, value, step=stepid)
 
-    def plotTrajectory(self, y_true, y_pred, dt_true, dt_pred, stepid):
+    def plotTrajectory(self, y_pred, dt_pred, stepid):
         fig, ax = plt.subplots(3,3)
         fig.set_size_inches(9, 9)
 
-        dt_true = 1.0/dt_true.numpy()
+        # dt_true = 1.0/dt_true.numpy()
         dt_pred = 1.0/dt_pred.numpy()[0]
 
-        max_trj_len = y_true.shape[0]
+        max_trj_len = y_pred.shape[0]
         for sp in range(7):
             idx = sp // 3
             idy = sp  % 3
             ax[idx,idy].clear()
             ax[idx,idy].plot(range(max_trj_len), y_pred[:,sp], alpha=0.5, color='midnightblue')
-            ax[idx,idy].plot(range(max_trj_len), y_true[:,sp], alpha=0.5, color='forestgreen')
+            # ax[idx,idy].plot(range(max_trj_len), y_true[:,sp], alpha=0.5, color='forestgreen')
             # ax[idx,idy].plot([dt_pred, dt_pred], [-0.1, 1.1], alpha=0.5, linestyle=":", color="midnightblue")
             # ax[idx,idy].plot([dt_true, dt_true], [-0.1, 1.1], alpha=0.5, linestyle=":", color="forestgreen")
             # ax[idx,idy].set_ylim([-0.1, 1.1])
@@ -195,6 +195,7 @@ class TBoardGraphs():
         ax[2,2].set_ylim([-0.1, 1.1])
 
         result = np.expand_dims(self.finishFigure(fig), 0)
+        plt.savefig(f"dmptrajectory{round(time.time())}.png")
         plt.close()
         with self.__tboard_validation.as_default():
             tf.summary.image("Trajectory", data=result, step=stepid)

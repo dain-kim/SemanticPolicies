@@ -127,7 +127,7 @@ class NetworkService():
         return result
 
     def cbk_network_dmp_ros2(self, req, res):
-        res.trajectory, res.confidence, res.timesteps, res.weights, res.phase, res.features = self.cbk_network_dmp(req)
+        res.trajectory, res.confidence, res.timesteps, res.weights, res.phase, res.features, res.attn = self.cbk_network_dmp(req)
         return res
     
     def imgmsg_to_cv2(self, img_msg, desired_encoding="passthrough"):   
@@ -174,6 +174,7 @@ class NetworkService():
     def cbk_network_dmp(self, req):
         if req.reset: # cnt = 1
             self.reset_state()
+            self.raw_a = np.array([])
             try:
                 image = self.imgmsg_to_cv2(req.image)
             except CvBridgeError as e:
@@ -189,9 +190,7 @@ class NetworkService():
 
             boxes    = image_features["detection_boxes"][0, :6, :].numpy().astype(dtype=np.float32)
             
-            # detect_objects(model, image, tf.convert_to_tensor([image], dtype=tf.uint8), boxes, classes)
             # show_bounding_boxes(image, boxes, classes, scores)
-            # model.saveBoundingBoxInfo(image, image_features)
             
             self.features = np.concatenate((np.expand_dims(classes,1), boxes), axis=1)
 
@@ -204,7 +203,9 @@ class NetworkService():
 
             # attention network
             sentence_embedding, atn = model.get_attention(self.language_tf, self.features_tf, training=tf.constant(False))
-            print('RAW A', atn[0])
+            # print('RAW A', atn[0])
+            self.raw_a = atn[0].numpy()
+
             
             # task object selector
             atn = tf.numpy_function(random_choose, [atn], tf.float32)
@@ -231,7 +232,7 @@ class NetworkService():
 
         if self.task_embedding is None:
             # print('You shouldn\'t be here')
-            return ([], [], 0, [], 0.0, self.features.flatten().tolist())
+            return ([], [], 0, [], 0.0, self.features.flatten().tolist(), self.raw_a.tolist())
         # call the model with the current embedding
         input_data = (
             self.language_tf,
@@ -277,7 +278,7 @@ class NetworkService():
             self.reset_state()
         
         self.req_step += 1
-        return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), float(subtask_phase), self.features.flatten().tolist())
+        return (self.trj_gen.flatten().tolist(), self.trj_std.flatten().tolist(), self.timesteps, self.b_weights.flatten().tolist(), float(subtask_phase), self.features.flatten().tolist(), self.raw_a.tolist())
     
     def idToText(self, id):
         names = ["", "Yellow Small Round", "Red Small Round", "Green Small Round", "Blue Small Round", "Pink Small Round",
